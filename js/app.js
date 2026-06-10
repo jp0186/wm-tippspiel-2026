@@ -156,7 +156,13 @@ function parseGvizTable(table) {
   if (!table || !table.cols) return { headers: [], rows: [] };
   const headers = table.cols.map((c) => c.label || c.id || "");
   const rows = (table.rows || []).map((r) =>
-    r.c.map((cell) => (cell && cell.v != null ? cell.v : ""))
+    r.c.map((cell) => {
+      if (!cell || cell.v == null) return "";
+      // gviz returns dates as "Date(year,month,day)" — use formatted string instead
+      if (typeof cell.v === "string" && cell.v.startsWith("Date(")) return cell.f ?? "";
+      if (cell.v instanceof Date) return cell.f ?? cell.v.toISOString().slice(0, 10);
+      return cell.v;
+    })
   );
   return { headers, rows };
 }
