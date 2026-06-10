@@ -1,4 +1,4 @@
-let SHEET_ID = window.TIPPSPIEL_SHEET_ID || "";
+let SHEET_ID = window.TIPPSPIEL_SHEET_ID || "15TA6wW-UNnE6kzcS7mTr2l4Tx4bfydS3kYtDGtIpgac";
 let SITE_TITLE = "Tippspiel";
 const REFRESH_MS = 60_000;
 
