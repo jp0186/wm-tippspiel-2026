@@ -296,8 +296,8 @@ async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
         const ptClass = pts === 3 ? "exact" : pts === 1 ? "outcome" : hasResult ? "miss" : "no-result";
         const tipRow = tipsMap[String(player)];
         const tipStr = tipRow ? String(tipRow[ptCol] ?? "") : "";
-        const ptLabel = !hasResult ? "–" : isNaN(pts) ? "–" : `${pts} Pkt`;
-        const label = tipStr ? `${escHtml(tipStr)} · ${ptLabel}` : ptLabel;
+        const ptLabel = !hasResult ? "" : isNaN(pts) ? "–" : `${pts} Pkt`;
+        const label = tipStr && ptLabel ? `${escHtml(tipStr)} · ${ptLabel}` : tipStr ? escHtml(tipStr) : ptLabel || "–";
         html += `<tr>
           <td class="today-tip-player">${escHtml(String(player))}</td>
           <td class="today-tip-pts ${ptClass}">${label}</td>
@@ -456,7 +456,7 @@ async function renderResults() {
             const ptLabel = !hasResult ? "–" : isNaN(pts) ? "–" : `${pts} Pkt`;
             const tipRow = tipsMap[String(player)];
             const tipStr = (hasTips && tipRow) ? String(tipRow[ptCol] ?? "") : "";
-            const tipLabel = tipStr ? `${escHtml(tipStr)} · ${ptLabel}` : ptLabel;
+            const tipLabel = tipStr && hasResult ? `${escHtml(tipStr)} · ${ptLabel}` : tipStr ? escHtml(tipStr) : ptLabel;
             html += `<tr>
               <td class="tip-player">${escHtml(String(player))}</td>
               <td class="tip-pts ${ptClass}">${tipLabel}</td>
@@ -545,7 +545,7 @@ async function renderSpecial() {
         const n = parseInt(p.sf_pts, 10);
         const hasPoints = !isNaN(n) && n > 0;
         const cls = hasPoints ? "scored" : "miss";
-        const picks = p.sf_tips.filter(t => t).join(" · ") || "–";
+        const picks = p.sf_tips.filter(t => t).join(", ") || "–";
         return `<td class="sp-pts ${cls}">${escHtml(picks)}${hasPoints ? ` <em>(${n})</em>` : ""}</td>`;
       }).join("");
       return `<tr><td class="sp-label">Halbfinalisten (je 5 Pkt)</td>${cells}</tr>`;
