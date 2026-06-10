@@ -204,24 +204,24 @@
 <body>
   <header>
     <h1>⚽ WM Tippspiel 2026</h1>
-    <p>FIFA World Cup — Family Sweepstake</p>
+    <p>FIFA Weltmeisterschaft — Familientippspiel</p>
   </header>
 
   <nav>
-    <a href="index.html" class="active">🏆 Rangliste / Leaderboard</a>
-    <a href="results.html">📋 Ergebnisse / Results</a>
+    <a href="index.html" class="active">🏆 Rangliste</a>
+    <a href="results.html">📋 Ergebnisse</a>
   </nav>
 
   <main>
     <div id="status"></div>
 
     <div id="setup-hint" style="display:none">
-      <strong>Setup:</strong> Paste your spreadsheet ID into <code>web/js/app.js</code>
-      (set <code>const SHEET_ID = "…"</code>) or append <code>?sid=YOUR_ID</code> to the URL.
+      <strong>Setup:</strong> Tabellen-ID in <code>web/js/app.js</code> eintragen
+      (<code>const SHEET_ID = "…"</code>) oder <code>?sid=DEINE_ID</code> an die URL anhängen.
     </div>
 
     <div id="leaderboard-container">
-      <p class="empty">Lade Daten … / Loading …</p>
+      <p class="empty">Lade Daten …</p>
     </div>
   </main>
 
@@ -232,7 +232,7 @@
     if (!getSheetId()) {
       document.getElementById("setup-hint").style.display = "block";
       document.getElementById("leaderboard-container").innerHTML =
-        "<p class='empty'>Spreadsheet ID not configured — see setup hint above.</p>";
+        "<p class='empty'>Tabellen-ID nicht konfiguriert — siehe Hinweis oben.</p>";
     } else {
       autoRefresh(renderLeaderboard);
     }
