@@ -32,29 +32,16 @@
 
     header {
       background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-      padding: 1.25rem 1.5rem 1rem;
+      padding: 1.5rem 1.5rem 1.25rem;
       text-align: center;
     }
 
     header img.logo {
-      height: 72px;
-      width: 72px;
+      height: 216px;
+      width: 216px;
       object-fit: contain;
       display: block;
-      margin: 0 auto 0.4rem;
-    }
-
-    header h1 {
-      font-size: clamp(1.5rem, 4vw, 2.5rem);
-      font-weight: 800;
-      letter-spacing: 0.02em;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-    }
-
-    header p {
-      margin-top: 0.3rem;
-      opacity: 0.85;
-      font-size: 0.95rem;
+      margin: 0 auto;
     }
 
     nav {
@@ -92,6 +79,70 @@
       color: var(--text-muted);
       margin-bottom: 1rem;
     }
+
+    /* ── Today's matches with tips ─────────────────── */
+    .today-section {
+      margin-bottom: 2rem;
+    }
+
+    .today-section h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .today-match-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 0.75rem;
+      overflow: hidden;
+    }
+
+    .today-match-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 1rem;
+      background: var(--surface2);
+      flex-wrap: wrap;
+    }
+
+    .today-match-teams { flex: 1; font-weight: 600; font-size: 0.95rem; }
+
+    .today-match-result {
+      font-size: 1.1rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      min-width: 3rem;
+      text-align: right;
+    }
+
+    .today-match-result.final  { color: var(--green); }
+    .today-match-result.pending { color: var(--text-muted); }
+
+    .today-tips-table { width: 100%; border-collapse: collapse; }
+
+    .today-tips-table td {
+      padding: 0.35rem 1rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+
+    .today-tip-player { color: var(--text); }
+
+    .today-tip-pts {
+      text-align: right;
+      font-weight: 700;
+      width: 5rem;
+    }
+
+    .today-tip-pts.exact   { color: var(--green); }
+    .today-tip-pts.outcome { color: var(--yellow); }
+    .today-tip-pts.miss    { color: var(--red); }
+    .today-tip-pts.no-result { color: var(--text-muted); }
 
     /* ── Upcoming matches ───────────────────────────── */
     .upcoming-section {
@@ -205,8 +256,6 @@
 <body>
   <header>
     <img src="img/logo.png" alt="WM Tippspiel Logo" class="logo">
-    <h1 class="tippspiel-title">Tippspiel</h1>
-    <p>FIFA Weltmeisterschaft — Familientippspiel</p>
   </header>
 
   <nav>
@@ -218,6 +267,7 @@
   <main>
     <div id="status"></div>
     <div id="upcoming-container"></div>
+    <div id="today-container"></div>
 
     <div id="leaderboard-container">
       <p class="empty">Lade Daten …</p>

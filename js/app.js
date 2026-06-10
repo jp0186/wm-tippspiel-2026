@@ -246,21 +246,91 @@ function renderUpcoming(matches, container) {
   container.innerHTML = html;
 }
 
+// ── Today's matches with tips (homepage) ──────────────────────────────────────
+
+async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
+  const today = todayStr();
+  const todayMatches = matchRows
+    .map((m, i) => ({ m, i }))
+    .filter(({ m }) => String(m[1]).slice(0, 10) === today && m[4] === "Group Stage");
+
+  if (!todayMatches.length) {
+    container.innerHTML = "";
+    return;
+  }
+
+  // Build ordered list of group-match indices for Points/Tips column mapping
+  const groupMatchIndices = [];
+  matchRows.forEach((m, i) => { if (m[4] === "Group Stage") groupMatchIndices.push(i); });
+
+  const players = pointsMatrix.map(r => r[0]);
+
+  let html = `<div class="today-section"><h3>Heutige Spiele</h3>`;
+
+  for (const { m, i: matchIdx } of todayMatches) {
+    const home = teamDE(String(m[5]));
+    const away = teamDE(String(m[6]));
+    const homeScore = m[7];
+    const awayScore = m[8];
+    const hasResult = homeScore !== "" && awayScore !== "";
+    const resultStr = hasResult ? `${homeScore} – ${awayScore}` : String(m[2]) + " Uhr";
+    const gmCol = groupMatchIndices.indexOf(matchIdx);
+    const ptCol = gmCol >= 0 ? gmCol + 1 : -1;
+
+    html += `<div class="today-match-card">
+      <div class="today-match-header">
+        <span class="today-match-teams">${escHtml(home)} <span class="vs">vs</span> ${escHtml(away)}</span>
+        <span class="today-match-result ${hasResult ? "final" : "pending"}">${escHtml(resultStr)}</span>
+      </div>`;
+
+    if (players.length && ptCol >= 0) {
+      html += `<table class="today-tips-table"><tbody>`;
+      players.forEach((player, pi) => {
+        const pts = parseInt(String(pointsMatrix[pi]?.[ptCol] ?? ""), 10);
+        const ptClass = pts === 3 ? "exact" : pts === 1 ? "outcome" : hasResult ? "miss" : "no-result";
+        const tipRow = tipsMap[String(player)];
+        const tipStr = tipRow ? String(tipRow[ptCol] ?? "") : "";
+        const ptLabel = !hasResult ? "–" : isNaN(pts) ? "–" : `${pts} Pkt`;
+        const label = tipStr ? `${escHtml(tipStr)} · ${ptLabel}` : ptLabel;
+        html += `<tr>
+          <td class="today-tip-player">${escHtml(String(player))}</td>
+          <td class="today-tip-pts ${ptClass}">${label}</td>
+        </tr>`;
+      });
+      html += `</tbody></table>`;
+    }
+    html += `</div>`;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
 // ── Rangliste / Homepage (index.html) ─────────────────────────────────────────
 
 async function renderLeaderboard() {
   const container = document.getElementById("leaderboard-container");
   const upcomingContainer = document.getElementById("upcoming-container");
+  const todayContainer = document.getElementById("today-container");
   const statusEl = document.getElementById("status");
 
   try {
-    const [{ rows: lbRows }, { rows: matchRows }] = await Promise.all([
+    const [{ rows: lbRows }, { rows: matchRows }, { rows: pointsRows }, tipsData] = await Promise.all([
       fetchSheet("Leaderboard"),
       fetchSheet("Matches"),
+      fetchSheet("Points"),
+      fetchSheet("Tips").catch(() => ({ headers: [], rows: [] })),
     ]);
+
+    const tipsMap = {};
+    tipsData.rows.forEach(r => { tipsMap[String(r[0])] = r; });
 
     if (upcomingContainer && matchRows.length) {
       renderUpcoming(matchRows, upcomingContainer);
+    }
+
+    if (todayContainer && matchRows.length) {
+      await renderTodayMatches(matchRows, pointsRows, tipsMap, todayContainer);
     }
 
     if (!lbRows.length) {
