@@ -433,7 +433,7 @@ async function renderLeaderboard() {
       const flagHtml = flag ? ` <span title="${escHtml(wm)}">${flag}</span>` : "";
       html += `<tr class="${rowClass}">
         <td class="rank-cell">${medal || rank}</td>
-        <td class="name-cell">${escHtml(String(name))}${flagHtml}</td>
+        <td class="name-cell"><a class="player-link" href="player.html?player=${encodeURIComponent(String(name))}">${escHtml(String(name))}</a>${flagHtml}</td>
         <td class="pts-cell total">${total}</td>
         <td class="pts-cell">${matchPts}</td>
         <td class="pts-cell">${specialPts}</td>
@@ -550,7 +550,7 @@ async function renderResults() {
             const tipStr = (hasTips && tipRow) ? String(tipRow[ptCol] ?? "") : "";
             const tipLabel = tipStr && hasResult ? `${escHtml(tipStr)} · ${ptLabel}` : tipStr ? escHtml(tipStr) : ptLabel;
             html += `<tr>
-              <td class="tip-player">${escHtml(String(player))}</td>
+              <td class="tip-player"><a class="player-link" href="player.html?player=${encodeURIComponent(String(player))}">${escHtml(String(player))}</a></td>
               <td class="tip-pts ${ptClass}">${tipLabel}</td>
             </tr>`;
           });
