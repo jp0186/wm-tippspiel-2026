@@ -815,7 +815,7 @@ async function renderPlayerDetail() {
       const spLabels = ["Weltmeister (15 Pkt)", "Torschützenkönig (10 Pkt)",
         "Halbfinalist 1 (5 Pkt)", "Halbfinalist 2 (5 Pkt)",
         "Halbfinalist 3 (5 Pkt)", "Halbfinalist 4 (5 Pkt)",
-        "Mannschaft meiste Tore (5 Pkt)", "Spieler meiste Tore (5 Pkt)", "Gesamttore-Tipp (10 Pkt)"];
+        "Mannschaft meiste Tore in Gruppenphase (5 Pkt)", "Spieler meiste Tore in Gruppenphase (5 Pkt)", "Gesamttore-Tipp (10 Pkt)"];
       const spPtsCols = [1, 2, 3, 3, 3, 3, 7, 8, 10]; // indices in Special_Points row
       html += `<h2 class="pd-section-title">Spezialtipps</h2>
         <table class="pd-sp-table"><tbody>`;
