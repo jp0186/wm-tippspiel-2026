@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WM Tippspiel 2026 — Rangliste</title>
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --surface: #131929;
+      --surface2: #1c2540;
+      --border: #2a3555;
+      --text: #e8eaf6;
+      --text-muted: #8892b0;
+      --gold: #f5c518;
+      --silver: #c0c7d4;
+      --bronze: #cd7f32;
+      --green: #4ade80;
+      --accent: #4f86f7;
+      --radius: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+      padding: 2rem 1.5rem 1.5rem;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: clamp(1.5rem, 4vw, 2.5rem);
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    header p {
+      margin-top: 0.4rem;
+      opacity: 0.85;
+      font-size: 0.95rem;
+    }
+
+    nav {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      padding: 0.75rem 1rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.4rem 1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      transition: all 0.15s;
+    }
+
+    nav a:hover,
+    nav a.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    main {
+      max-width: 860px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    #status {
+      text-align: right;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .leaderboard-table thead tr {
+      background: var(--surface2);
+    }
+
+    .leaderboard-table th,
+    .leaderboard-table td {
+      padding: 0.8rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .leaderboard-table th {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .leaderboard-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .leaderboard-table tbody tr:hover {
+      background: var(--surface2);
+    }
+
+    .rank-cell {
+      font-size: 1.2rem;
+      text-align: center;
+      width: 3rem;
+    }
+
+    .name-cell {
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+
+    .pts-cell {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .pts-cell.total {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    tr.rank-1 .name-cell {
+      color: var(--gold);
+    }
+
+    tr.rank-2 .name-cell {
+      color: var(--silver);
+    }
+
+    tr.rank-3 .name-cell {
+      color: var(--bronze);
+    }
+
+    .empty,
+    .error {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-muted);
+    }
+
+    .error {
+      color: #f87171;
+    }
+
+    #setup-hint {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    #setup-hint code {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.88em;
+    }
+
+    @media (max-width: 500px) {
+
+      .leaderboard-table th:nth-child(4),
+      .leaderboard-table td:nth-child(4),
+      .leaderboard-table th:nth-child(5),
+      .leaderboard-table td:nth-child(5) {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>⚽ WM Tippspiel 2026</h1>
+    <p>FIFA World Cup — Family Sweepstake</p>
+  </header>
+
+  <nav>
+    <a href="index.html" class="active">🏆 Rangliste / Leaderboard</a>
+    <a href="results.html">📋 Ergebnisse / Results</a>
+  </nav>
+
+  <main>
+    <div id="status"></div>
+
+    <div id="setup-hint" style="display:none">
+      <strong>Setup:</strong> Paste your spreadsheet ID into <code>web/js/app.js</code>
+      (set <code>const SHEET_ID = "…"</code>) or append <code>?sid=YOUR_ID</code> to the URL.
+    </div>
+
+    <div id="leaderboard-container">
+      <p class="empty">Lade Daten … / Loading …</p>
+    </div>
+  </main>
+
+  <!-- Set your spreadsheet ID here after running setup.py -->
+  <script>window.TIPPSPIEL_SHEET_ID = "15TA6wW-UNnE6kzcS7mTr2l4Tx4bfydS3kYtDGtIpgac";</script>
+  <script src="js/app.js"></script>
+  <script>
+    if (!getSheetId()) {
+      document.getElementById("setup-hint").style.display = "block";
+      document.getElementById("leaderboard-container").innerHTML =
+        "<p class='empty'>Spreadsheet ID not configured — see setup hint above.</p>";
+    } else {
+      autoRefresh(renderLeaderboard);
+    }
+  </script>
+</body>
+
+</html>
