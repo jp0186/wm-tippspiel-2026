@@ -709,7 +709,7 @@ function escHtml(s) {
 }
 
 function playerImgSrc(name) {
-  return `img/${name.toLowerCase().replace(/\s+/g, "_")}.png`;
+  return `img/${name.toLowerCase().replace(/\s+/g, "_")}.jpg`;
 }
 
 // ── Mitspieler overview (players.html) ────────────────────────────────────────
