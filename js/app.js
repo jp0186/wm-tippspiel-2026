@@ -382,12 +382,13 @@ async function renderLeaderboard() {
   const statusEl = document.getElementById("status");
 
   try {
-    const [{ rows: lbRows }, { rows: matchRows }, { rows: pointsRows }, tipsData, spTipsData] = await Promise.all([
+    const [{ rows: lbRows }, { rows: matchRows }, { rows: pointsRows }, tipsData, spTipsData, newsData] = await Promise.all([
       fetchSheet("Leaderboard"),
       fetchSheet("Matches"),
       fetchSheet("Points"),
       fetchSheet("Tips").catch(() => ({ headers: [], rows: [] })),
       fetchSheet("Special_Tips").catch(() => ({ headers: [], rows: [] })),
+      fetchSheet("News").catch(() => ({ headers: [], rows: [] })),
     ]);
 
     const tipsMap = {};
@@ -441,11 +442,33 @@ async function renderLeaderboard() {
 
     html += "</tbody></table>";
     container.innerHTML = html;
+
+    const newsContainer = document.getElementById("news-container");
+    if (newsContainer) renderNews(newsData.rows, newsContainer);
+
     if (statusEl) statusEl.textContent = `Aktualisiert: ${new Date().toLocaleTimeString("de-DE")}`;
   } catch (e) {
     container.innerHTML = `<p class="error">Fehler: ${escHtml(e.message)}</p>`;
     console.error(e);
   }
+}
+
+function renderNews(rows, container) {
+  // First row is header; skip it. Reverse so newest (bottom) is shown first.
+  const items = rows.slice(1).filter(r => r[0] || r[1]).reverse();
+  if (!items.length) { container.innerHTML = ""; return; }
+
+  let html = `<div class="news-section"><h3>📰 Neuigkeiten</h3>`;
+  items.forEach(r => {
+    const ts = escHtml(String(r[0] || ""));
+    const msg = escHtml(String(r[1] || ""));
+    html += `<div class="news-item">
+      ${ts ? `<div class="news-timestamp">${ts}</div>` : ""}
+      <div class="news-message">${msg}</div>
+    </div>`;
+  });
+  html += `</div>`;
+  container.innerHTML = html;
 }
 
 // ── Ergebnisse (results.html) ──────────────────────────────────────────────────
