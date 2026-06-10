@@ -23,11 +23,7 @@
       --radius: 10px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       background: var(--bg);
@@ -46,14 +42,10 @@
       font-size: clamp(1.5rem, 4vw, 2.5rem);
       font-weight: 800;
       letter-spacing: 0.02em;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
     }
 
-    header p {
-      margin-top: 0.4rem;
-      opacity: 0.85;
-      font-size: 0.95rem;
-    }
+    header p { margin-top: 0.4rem; opacity: 0.85; font-size: 0.95rem; }
 
     nav {
       display: flex;
@@ -73,17 +65,9 @@
       transition: all 0.15s;
     }
 
-    nav a:hover,
-    nav a.active {
-      background: var(--accent);
-      color: #fff;
-    }
+    nav a:hover, nav a.active { background: var(--accent); color: #fff; }
 
-    main {
-      max-width: 960px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-    }
+    main { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
 
     #status {
       text-align: right;
@@ -92,9 +76,7 @@
       margin-bottom: 1rem;
     }
 
-    .group-section {
-      margin-bottom: 2.5rem;
-    }
+    .group-section { margin-bottom: 2.5rem; }
 
     .group-section h2 {
       font-size: 1.1rem;
@@ -131,17 +113,8 @@
       min-width: 8rem;
     }
 
-    .match-teams {
-      flex: 1;
-      font-weight: 600;
-      font-size: 1rem;
-    }
-
-    .vs {
-      font-weight: 400;
-      color: var(--text-muted);
-      margin: 0 0.3em;
-    }
+    .match-teams { flex: 1; font-weight: 600; font-size: 1rem; }
+    .vs { font-weight: 400; color: var(--text-muted); margin: 0 0.3em; }
 
     .match-result {
       font-size: 1.15rem;
@@ -152,18 +125,10 @@
       letter-spacing: 0.05em;
     }
 
-    .match-result.final {
-      color: var(--green);
-    }
+    .match-result.final { color: var(--green); }
+    .match-result.pending { color: var(--text-muted); }
 
-    .match-result.pending {
-      color: var(--text-muted);
-    }
-
-    .tips-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+    .tips-table { width: 100%; border-collapse: collapse; }
 
     .tips-table td {
       padding: 0.45rem 1rem;
@@ -171,41 +136,26 @@
       font-size: 0.9rem;
     }
 
-    .tip-player {
-      color: var(--text);
+    .tip-player { color: var(--text); }
+
+    .tip-text {
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+      font-size: 0.88rem;
+      width: 3.5rem;
+      text-align: center;
     }
 
     .tip-pts {
       text-align: right;
       font-weight: 700;
-      width: 3rem;
+      width: 4.5rem;
     }
 
-    .tip-pts.exact {
-      color: var(--green);
-    }
-
-    .tip-pts.exact::after {
-      content: " ✓✓";
-      font-size: 0.75em;
-    }
-
-    .tip-pts.outcome {
-      color: var(--yellow);
-    }
-
-    .tip-pts.outcome::after {
-      content: " ✓";
-      font-size: 0.75em;
-    }
-
-    .tip-pts.miss {
-      color: var(--red);
-    }
-
-    .tip-pts.no-result {
-      color: var(--text-muted);
-    }
+    .tip-pts.exact  { color: var(--green); }
+    .tip-pts.outcome { color: var(--yellow); }
+    .tip-pts.miss   { color: var(--red); }
+    .tip-pts.no-result { color: var(--text-muted); }
 
     .legend {
       display: flex;
@@ -216,64 +166,32 @@
       color: var(--text-muted);
     }
 
-    .legend span {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
+    .legend span { display: flex; align-items: center; gap: 0.4rem; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot.exact   { background: var(--green); }
+    .dot.outcome { background: var(--yellow); }
+    .dot.miss    { background: var(--red); }
 
-    .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-    }
-
-    .dot.exact {
-      background: var(--green);
-    }
-
-    .dot.outcome {
-      background: var(--yellow);
-    }
-
-    .dot.miss {
-      background: var(--red);
-    }
-
-    .empty,
-    .error {
-      text-align: center;
-      padding: 3rem;
-      color: var(--text-muted);
-    }
-
-    .error {
-      color: var(--red);
-    }
+    .empty, .error { text-align: center; padding: 3rem; color: var(--text-muted); }
+    .error { color: var(--red); }
 
     @media (max-width: 540px) {
-      .match-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.3rem;
-      }
-
-      .match-result {
-        align-self: flex-end;
-      }
+      .match-header { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+      .match-result { align-self: flex-end; }
     }
   </style>
 </head>
 
 <body>
   <header>
-    <h1>⚽ WM Tippspiel 2026</h1>
+    <h1 class="tippspiel-title">⚽ Tippspiel</h1>
     <p>FIFA Weltmeisterschaft — Familientippspiel</p>
   </header>
 
   <nav>
-    <a href="index.html">🏆 Rangliste</a>
+    <a href="index.html">🏠 Homepage</a>
     <a href="results.html" class="active">📋 Ergebnisse</a>
+    <a href="special.html">⭐ Spezialtipps</a>
   </nav>
 
   <main>
@@ -290,8 +208,6 @@
     </div>
   </main>
 
-  <!-- Set your spreadsheet ID here after running setup.py -->
-  <script>window.TIPPSPIEL_SHEET_ID = "15TA6wW-UNnE6kzcS7mTr2l4Tx4bfydS3kYtDGtIpgac";</script>
   <script src="js/app.js"></script>
   <script>
     if (!getSheetId()) {

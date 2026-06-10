@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WM Tippspiel 2026 — Spezialtipps</title>
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --surface: #131929;
+      --surface2: #1c2540;
+      --border: #2a3555;
+      --text: #e8eaf6;
+      --text-muted: #8892b0;
+      --green: #4ade80;
+      --yellow: #fbbf24;
+      --red: #f87171;
+      --accent: #4f86f7;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+      padding: 2rem 1.5rem 1.5rem;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: clamp(1.5rem, 4vw, 2.5rem);
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    header p { margin-top: 0.4rem; opacity: 0.85; font-size: 0.95rem; }
+
+    nav {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      padding: 0.75rem 1rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.4rem 1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      transition: all 0.15s;
+    }
+
+    nav a:hover, nav a.active { background: var(--accent); color: #fff; }
+
+    main { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+
+    #status {
+      text-align: right;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .special-phase {
+      margin-bottom: 2rem;
+    }
+
+    .special-phase h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.85rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .special-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      font-size: 0.9rem;
+    }
+
+    .special-table thead tr { background: var(--surface2); }
+
+    .special-table th {
+      padding: 0.65rem 0.9rem;
+      text-align: center;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .special-table th:first-child { text-align: left; }
+
+    .special-table td {
+      padding: 0.6rem 0.9rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .special-table tbody tr:last-child td { border-bottom: none; }
+    .special-table tbody tr:hover { background: var(--surface2); }
+
+    .sp-label {
+      text-align: left !important;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      min-width: 12rem;
+    }
+
+    .sp-pts { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .sp-pts.scored { color: var(--green); }
+    .sp-pts.miss   { color: var(--text-muted); font-weight: 400; }
+    .sp-pts.total  { color: var(--accent); font-size: 1.05rem; }
+
+    .sp-pts em {
+      font-style: normal;
+      font-weight: 700;
+      color: var(--green);
+      font-size: 0.8em;
+      margin-left: 0.3em;
+    }
+
+    .total-row .special-table { background: transparent; }
+    .total-special td { border-top: 2px solid var(--border) !important; }
+
+    .empty, .error { text-align: center; padding: 3rem; color: var(--text-muted); }
+    .error { color: var(--red); }
+
+    @media (max-width: 600px) {
+      .sp-label { min-width: 8rem; font-size: 0.78rem; }
+      .special-table th, .special-table td { padding: 0.5rem 0.5rem; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1 class="tippspiel-title">⚽ Tippspiel</h1>
+    <p>FIFA Weltmeisterschaft — Familientippspiel</p>
+  </header>
+
+  <nav>
+    <a href="index.html">🏠 Homepage</a>
+    <a href="results.html">📋 Ergebnisse</a>
+    <a href="special.html" class="active">⭐ Spezialtipps</a>
+  </nav>
+
+  <main>
+    <div id="status"></div>
+    <div id="special-container">
+      <p class="empty">Lade Daten …</p>
+    </div>
+  </main>
+
+  <script src="js/app.js"></script>
+  <script>
+    if (!getSheetId()) {
+      document.getElementById("special-container").innerHTML =
+        "<p class='empty'>Tabellen-ID nicht konfiguriert.</p>";
+    } else {
+      autoRefresh(renderSpecial);
+    }
+  </script>
+</body>
+
+</html>

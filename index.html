@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WM Tippspiel 2026 — Rangliste</title>
+  <title>WM Tippspiel 2026</title>
   <style>
     :root {
       --bg: #0a0e1a;
@@ -21,11 +21,7 @@
       --radius: 10px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       background: var(--bg);
@@ -44,7 +40,7 @@
       font-size: clamp(1.5rem, 4vw, 2.5rem);
       font-weight: 800;
       letter-spacing: 0.02em;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
     }
 
     header p {
@@ -71,8 +67,7 @@
       transition: all 0.15s;
     }
 
-    nav a:hover,
-    nav a.active {
+    nav a:hover, nav a.active {
       background: var(--accent);
       color: #fff;
     }
@@ -90,18 +85,75 @@
       margin-bottom: 1rem;
     }
 
+    /* ── Upcoming matches ───────────────────────────── */
+    .upcoming-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .upcoming-section h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .countdown-badge {
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.15em 0.55em;
+      border-radius: 20px;
+      letter-spacing: 0.03em;
+      text-transform: none;
+    }
+
+    .upcoming-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .upcoming-match {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.92rem;
+      padding: 0.25rem 0;
+    }
+
+    .upcoming-teams { flex: 1; }
+    .vs { color: var(--text-muted); margin: 0 0.3em; }
+
+    .upcoming-time {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      white-space: nowrap;
+      margin-left: 1rem;
+    }
+
+    .upcoming-time.final { color: var(--green); font-weight: 600; }
+    .upcoming-done { color: var(--text-muted); font-size: 0.9rem; }
+
+    /* ── Leaderboard ────────────────────────────────── */
     .leaderboard-table {
       width: 100%;
       border-collapse: collapse;
       background: var(--surface);
       border-radius: var(--radius);
       overflow: hidden;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
     }
 
-    .leaderboard-table thead tr {
-      background: var(--surface2);
-    }
+    .leaderboard-table thead tr { background: var(--surface2); }
 
     .leaderboard-table th,
     .leaderboard-table td {
@@ -117,122 +169,57 @@
       color: var(--text-muted);
     }
 
-    .leaderboard-table tbody tr:last-child td {
-      border-bottom: none;
-    }
+    .leaderboard-table tbody tr:last-child td { border-bottom: none; }
+    .leaderboard-table tbody tr:hover { background: var(--surface2); }
 
-    .leaderboard-table tbody tr:hover {
-      background: var(--surface2);
-    }
+    .rank-cell { font-size: 1.2rem; text-align: center; width: 3rem; }
+    .name-cell { font-weight: 600; font-size: 1.05rem; }
 
-    .rank-cell {
-      font-size: 1.2rem;
-      text-align: center;
-      width: 3rem;
-    }
+    .pts-cell { text-align: right; font-variant-numeric: tabular-nums; }
+    .pts-cell.total { font-size: 1.25rem; font-weight: 700; color: var(--accent); }
 
-    .name-cell {
-      font-weight: 600;
-      font-size: 1.05rem;
-    }
+    tr.rank-1 .name-cell { color: var(--gold); }
+    tr.rank-2 .name-cell { color: var(--silver); }
+    tr.rank-3 .name-cell { color: var(--bronze); }
 
-    .pts-cell {
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .pts-cell.total {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--accent);
-    }
-
-    tr.rank-1 .name-cell {
-      color: var(--gold);
-    }
-
-    tr.rank-2 .name-cell {
-      color: var(--silver);
-    }
-
-    tr.rank-3 .name-cell {
-      color: var(--bronze);
-    }
-
-    .empty,
-    .error {
-      text-align: center;
-      padding: 3rem;
-      color: var(--text-muted);
-    }
-
-    .error {
-      color: #f87171;
-    }
-
-    #setup-hint {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      font-size: 0.9rem;
-      line-height: 1.6;
-      color: var(--text-muted);
-    }
-
-    #setup-hint code {
-      background: rgba(255, 255, 255, 0.08);
-      padding: 0.15em 0.4em;
-      border-radius: 4px;
-      font-family: monospace;
-      font-size: 0.88em;
-    }
+    .empty, .error { text-align: center; padding: 3rem; color: var(--text-muted); }
+    .error { color: #f87171; }
 
     @media (max-width: 500px) {
-
       .leaderboard-table th:nth-child(4),
       .leaderboard-table td:nth-child(4),
       .leaderboard-table th:nth-child(5),
-      .leaderboard-table td:nth-child(5) {
-        display: none;
-      }
+      .leaderboard-table td:nth-child(5) { display: none; }
     }
   </style>
 </head>
 
 <body>
   <header>
-    <h1>⚽ WM Tippspiel 2026</h1>
+    <h1 class="tippspiel-title">⚽ Tippspiel</h1>
     <p>FIFA Weltmeisterschaft — Familientippspiel</p>
   </header>
 
   <nav>
-    <a href="index.html" class="active">🏆 Rangliste</a>
+    <a href="index.html" class="active">🏠 Homepage</a>
     <a href="results.html">📋 Ergebnisse</a>
+    <a href="special.html">⭐ Spezialtipps</a>
   </nav>
 
   <main>
     <div id="status"></div>
-
-    <div id="setup-hint" style="display:none">
-      <strong>Setup:</strong> Tabellen-ID in <code>web/js/app.js</code> eintragen
-      (<code>const SHEET_ID = "…"</code>) oder <code>?sid=DEINE_ID</code> an die URL anhängen.
-    </div>
+    <div id="upcoming-container"></div>
 
     <div id="leaderboard-container">
       <p class="empty">Lade Daten …</p>
     </div>
   </main>
 
-  <!-- Set your spreadsheet ID here after running setup.py -->
-  <script>window.TIPPSPIEL_SHEET_ID = "15TA6wW-UNnE6kzcS7mTr2l4Tx4bfydS3kYtDGtIpgac";</script>
   <script src="js/app.js"></script>
   <script>
     if (!getSheetId()) {
-      document.getElementById("setup-hint").style.display = "block";
       document.getElementById("leaderboard-container").innerHTML =
-        "<p class='empty'>Tabellen-ID nicht konfiguriert — siehe Hinweis oben.</p>";
+        "<p class='empty'>Tabellen-ID nicht konfiguriert.</p>";
     } else {
       autoRefresh(renderLeaderboard);
     }
