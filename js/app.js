@@ -463,7 +463,7 @@ function renderNews(rows, container) {
   items.forEach(r => {
     const ts      = escHtml(String(r[0] || ""));
     const heading = escHtml(String(r[1] || ""));
-    const msg     = escHtml(String(r[2] || "")).replace(/\n/g, "<br>");
+    const msg     = escHtml(String(r[2] || "")).split(/\n/).map(l => `<p>${l}</p>`).join("");
     html += `<div class="news-item">
       ${ts ? `<div class="news-timestamp">${ts}</div>` : ""}
       ${heading ? `<div class="news-heading">${heading}</div>` : ""}
