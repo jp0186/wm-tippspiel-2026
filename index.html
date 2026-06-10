@@ -217,12 +217,7 @@
 
   <script src="js/app.js"></script>
   <script>
-    if (!getSheetId()) {
-      document.getElementById("leaderboard-container").innerHTML =
-        "<p class='empty'>Tabellen-ID nicht konfiguriert.</p>";
-    } else {
-      autoRefresh(renderLeaderboard);
-    }
+    autoRefresh(renderLeaderboard);
   </script>
 </body>
 

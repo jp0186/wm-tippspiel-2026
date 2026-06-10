@@ -174,12 +174,7 @@
 
   <script src="js/app.js"></script>
   <script>
-    if (!getSheetId()) {
-      document.getElementById("special-container").innerHTML =
-        "<p class='empty'>Tabellen-ID nicht konfiguriert.</p>";
-    } else {
-      autoRefresh(renderSpecial);
-    }
+    autoRefresh(renderSpecial);
   </script>
 </body>
 
