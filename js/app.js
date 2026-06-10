@@ -380,10 +380,10 @@ async function renderResults() {
             const ptLabel = !hasResult ? "–" : isNaN(pts) ? "–" : `${pts} Pkt`;
             const tipRow = tipsMap[String(player)];
             const tipStr = (hasTips && tipRow) ? String(tipRow[ptCol] ?? "") : "";
+            const tipLabel = tipStr ? `${escHtml(tipStr)} · ${ptLabel}` : ptLabel;
             html += `<tr>
               <td class="tip-player">${escHtml(String(player))}</td>
-              ${tipStr ? `<td class="tip-text">${escHtml(tipStr)}</td>` : "<td></td>"}
-              <td class="tip-pts ${ptClass}">${ptLabel}</td>
+              <td class="tip-pts ${ptClass}">${tipLabel}</td>
             </tr>`;
           });
           html += `</tbody></table>`;
@@ -520,13 +520,6 @@ async function renderSpecial() {
         <tbody>
           ${simpleRow("Weltmeister (15 Pkt)",            p => p.tw_tip, p => p.tw_pts)}
           ${simpleRow("Torschützenkönig gesamt (10 Pkt)", p => p.ts_tip, p => p.ts_pts)}
-        </tbody>
-      </table>
-    </div>
-
-    <div class="special-phase total-row">
-      <table class="special-table">
-        <tbody>
           <tr class="total-special">
             <td class="sp-label"><strong>Spezialpunkte gesamt</strong></td>
             ${players.map(p => `<td class="sp-pts total">${p.total !== "" ? p.total : 0}</td>`).join("")}
