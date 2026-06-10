@@ -359,8 +359,8 @@ async function renderLeaderboard() {
       const total = row[2];
       const matchPts = row[3];
       const specialPts = row[4];
-      const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "";
-      const rowClass = rank <= 3 ? `rank-${rank}` : "";
+      const medal = rank === 1 ? "🏆" : "";
+      const rowClass = rank === 1 ? "rank-1" : "";
       html += `<tr class="${rowClass}">
         <td class="rank-cell">${medal || rank}</td>
         <td class="name-cell">${escHtml(String(name))}</td>
