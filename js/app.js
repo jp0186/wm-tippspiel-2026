@@ -454,17 +454,20 @@ async function renderLeaderboard() {
 }
 
 function renderNews(rows, container) {
-  // First row is header; skip it. Reverse so newest (bottom) is shown first.
-  const items = rows.slice(1).filter(r => r[0] || r[1]).reverse();
+  // Columns: A=Timestamp, B=Überschrift (optional), C=Nachricht
+  // Reverse so newest (bottom) is shown first.
+  const items = rows.slice(1).filter(r => r[0] || r[1] || r[2]).reverse();
   if (!items.length) { container.innerHTML = ""; return; }
 
   let html = `<div class="news-section"><h3>📰 Neuigkeiten</h3>`;
   items.forEach(r => {
-    const ts = escHtml(String(r[0] || ""));
-    const msg = escHtml(String(r[1] || ""));
+    const ts      = escHtml(String(r[0] || ""));
+    const heading = escHtml(String(r[1] || ""));
+    const msg     = escHtml(String(r[2] || "")).replace(/\n/g, "<br>");
     html += `<div class="news-item">
       ${ts ? `<div class="news-timestamp">${ts}</div>` : ""}
-      <div class="news-message">${msg}</div>
+      ${heading ? `<div class="news-heading">${heading}</div>` : ""}
+      ${msg ? `<div class="news-message">${msg}</div>` : ""}
     </div>`;
   });
   html += `</div>`;
