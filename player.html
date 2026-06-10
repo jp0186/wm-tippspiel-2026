@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WM Tippspiel 2026 — Spieler</title>
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --surface: #131929;
+      --surface2: #1c2540;
+      --border: #2a3555;
+      --text: #e8eaf6;
+      --text-muted: #8892b0;
+      --gold: #f5c518;
+      --green: #4ade80;
+      --accent: #4f86f7;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #f5f5f0;
+      padding: 1.5rem 1.5rem 1.25rem;
+      text-align: center;
+    }
+
+    header img.logo {
+      height: 216px;
+      width: 216px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+    }
+
+    nav {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      padding: 0.75rem 1rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.4rem 1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      transition: all 0.15s;
+    }
+
+    nav a:hover, nav a.active { background: var(--accent); color: #fff; }
+
+    main { max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+
+    #status {
+      text-align: right;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    /* ── Player header ───────────── */
+    .pd-header {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .pd-photo {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .pd-name {
+      font-size: clamp(1.4rem, 5vw, 2rem);
+      font-weight: 800;
+    }
+
+    .pd-rank {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 0.3rem;
+    }
+
+    /* ── Stats grid ──────────────── */
+    .pd-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+
+    .pd-stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+    }
+
+    .pd-stat-val {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .pd-stat-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Spezialtipps ────────────── */
+    .pd-section-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .pd-sp-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .pd-sp-table tr { border-bottom: 1px solid var(--border); }
+    .pd-sp-table tr:last-child { border-bottom: none; }
+
+    .pd-sp-label {
+      padding: 0.6rem 1rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      width: 55%;
+    }
+
+    .pd-sp-val {
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .pd-sp-val em.scored {
+      font-style: normal;
+      color: var(--green);
+      font-weight: 700;
+      margin-left: 0.4rem;
+    }
+
+    .empty, .error { text-align: center; padding: 3rem; color: var(--text-muted); }
+    .error { color: #f87171; }
+
+    @media (max-width: 480px) {
+      .pd-stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .pd-header { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <img src="img/logo.png" alt="WM Tippspiel Logo" class="logo">
+  </header>
+
+  <nav>
+    <a href="index.html">🏆 Rangliste</a>
+    <a href="results.html">📋 Tipps / Ergebnisse</a>
+    <a href="special.html">⭐ Spezialtipps</a>
+    <a href="players.html" class="active">👥 Mitspieler</a>
+  </nav>
+
+  <main>
+    <div id="status"></div>
+    <div id="player-container"><p class="empty">Lade Daten …</p></div>
+  </main>
+
+  <script src="js/app.js?v=3"></script>
+  <script>autoRefresh(renderPlayerDetail);</script>
+</body>
+
+</html>

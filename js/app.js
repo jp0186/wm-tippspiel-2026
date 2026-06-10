@@ -708,6 +708,133 @@ function escHtml(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+function playerImgSrc(name) {
+  return `img/${name.toLowerCase().replace(/\s+/g, "_")}.png`;
+}
+
+// ── Mitspieler overview (players.html) ────────────────────────────────────────
+
+async function renderPlayers() {
+  const container = document.getElementById("players-container");
+  const statusEl  = document.getElementById("status");
+  try {
+    const { rows: lbRows } = await fetchSheet("Leaderboard");
+    const players = lbRows.map(r => ({ rank: r[0], name: String(r[1]), total: r[2] }));
+
+    let html = `<div class="players-grid">`;
+    players.forEach(p => {
+      const src = playerImgSrc(p.name);
+      html += `<a class="player-tile" href="player.html?player=${encodeURIComponent(p.name)}">
+        <img src="${escHtml(src)}" alt="${escHtml(p.name)}"
+             onerror="this.onerror=null;this.src='img/placeholder.svg'">
+        <div class="player-tile-name">${escHtml(p.name)}</div>
+        <div class="player-tile-pts">${p.total} Pkt</div>
+      </a>`;
+    });
+    html += `</div>`;
+    container.innerHTML = html;
+    if (statusEl) statusEl.textContent = `Aktualisiert: ${new Date().toLocaleTimeString("de-DE")}`;
+  } catch (e) {
+    container.innerHTML = `<p class="error">Fehler: ${escHtml(e.message)}</p>`;
+    console.error(e);
+  }
+}
+
+// ── Player detail page (player.html) ─────────────────────────────────────────
+
+async function renderPlayerDetail() {
+  const container = document.getElementById("player-container");
+  const statusEl  = document.getElementById("status");
+  const playerName = new URLSearchParams(location.search).get("player") || "";
+
+  if (!playerName) {
+    container.innerHTML = `<p class="error">Kein Spieler angegeben.</p>`;
+    return;
+  }
+
+  try {
+    const [{ rows: lbRows }, { rows: ptsRows }, { headers: ptsHeaders }, spPtsData, spTipsData, { rows: matchRows }] = await Promise.all([
+      fetchSheet("Leaderboard"),
+      fetchSheet("Points"),
+      fetchSheet("Points"),
+      fetchSheet("Special_Points").catch(() => ({ rows: [] })),
+      fetchSheet("Special_Tips").catch(() => ({ rows: [] })),
+      fetchSheet("Matches"),
+    ]);
+
+    // Find this player's data
+    const lbRow  = lbRows.find(r => String(r[1]) === playerName);
+    const ptsRow = ptsRows.find(r => String(r[0]) === playerName);
+    const spPtsRow  = spPtsData.rows.find(r => String(r[0]) === playerName);
+    const spTipsRow = spTipsData.rows.find(r => String(r[0]) === playerName);
+
+    const rank    = lbRow ? lbRow[0] : "–";
+    const total   = lbRow ? lbRow[2] : 0;
+    const matchTotal   = lbRow ? lbRow[3] : 0;
+    const specialTotal = lbRow ? lbRow[4] : 0;
+
+    // Count exact / outcome / miss from match points columns
+    const groupMatchCount = matchRows.filter(m => m[4] === "Group Stage").length;
+    let exact = 0, outcome = 0, miss = 0, pending = 0;
+    if (ptsRow) {
+      for (let i = 1; i <= groupMatchCount; i++) {
+        const v = parseInt(String(ptsRow[i] ?? ""), 10);
+        if (isNaN(v)) pending++;
+        else if (v === 3) exact++;
+        else if (v === 1) outcome++;
+        else miss++;
+      }
+    }
+    const played = exact + outcome + miss;
+
+    const src = playerImgSrc(playerName);
+    let html = `
+      <div class="pd-header">
+        <img class="pd-photo" src="${escHtml(src)}" alt="${escHtml(playerName)}"
+             onerror="this.onerror=null;this.src='img/placeholder.svg'">
+        <div class="pd-info">
+          <h1 class="pd-name">${escHtml(playerName)}</h1>
+          <div class="pd-rank">Rang ${escHtml(String(rank))}</div>
+        </div>
+      </div>
+
+      <div class="pd-stats-grid">
+        <div class="pd-stat"><span class="pd-stat-val">${total}</span><span class="pd-stat-label">Punkte gesamt</span></div>
+        <div class="pd-stat"><span class="pd-stat-val">${matchTotal}</span><span class="pd-stat-label">Spielpunkte</span></div>
+        <div class="pd-stat"><span class="pd-stat-val">${specialTotal}</span><span class="pd-stat-label">Spezialpunkte</span></div>
+        <div class="pd-stat"><span class="pd-stat-val">${exact}</span><span class="pd-stat-label">Genaue Tipps</span></div>
+        <div class="pd-stat"><span class="pd-stat-val">${outcome}</span><span class="pd-stat-label">Tendenz richtig</span></div>
+        <div class="pd-stat"><span class="pd-stat-val">${played > 0 ? Math.round(100*(exact+outcome)/played) : "–"}${played > 0 ? "%" : ""}</span><span class="pd-stat-label">Trefferquote</span></div>
+      </div>`;
+
+    // Spezialtipps table
+    if (spTipsRow) {
+      const spLabels = ["Weltmeister (15 Pkt)", "Torschützenkönig (10 Pkt)",
+        "Halbfinalist 1 (5 Pkt)", "Halbfinalist 2 (5 Pkt)",
+        "Halbfinalist 3 (5 Pkt)", "Halbfinalist 4 (5 Pkt)",
+        "Mannschaft meiste Tore (5 Pkt)", "Spieler meiste Tore (5 Pkt)", "Gesamttore-Tipp (10 Pkt)"];
+      const spPtsCols = [1, 2, 3, 3, 3, 3, 7, 8, 10]; // indices in Special_Points row
+      html += `<h2 class="pd-section-title">Spezialtipps</h2>
+        <table class="pd-sp-table"><tbody>`;
+      spLabels.forEach((label, i) => {
+        const tip = String(spTipsRow[i + 1] || "–");
+        const pts = spPtsRow ? parseInt(String(spPtsRow[spPtsCols[i]] ?? ""), 10) : NaN;
+        const scored = !isNaN(pts) && pts > 0;
+        const ptLabel = scored ? `<em class="scored">(${pts} Pkt)</em>` : "";
+        html += `<tr><td class="pd-sp-label">${escHtml(label)}</td><td class="pd-sp-val">${escHtml(tip)} ${ptLabel}</td></tr>`;
+      });
+      html += `</tbody></table>`;
+    }
+
+    container.innerHTML = html;
+    document.title = `${playerName} — WM Tippspiel 2026`;
+    if (statusEl) statusEl.textContent = `Aktualisiert: ${new Date().toLocaleTimeString("de-DE")}`;
+  } catch (e) {
+    container.innerHTML = `<p class="error">Fehler: ${escHtml(e.message)}</p>`;
+    console.error(e);
+  }
+}
+
 function autoRefresh(fn) {
   loadConfig().then(() => {
     fn();
