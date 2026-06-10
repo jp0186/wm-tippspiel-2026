@@ -134,6 +134,67 @@ function teamDE(name) {
   return TEAM_DE[name] || name;
 }
 
+// German/English team name (lowercase) → flag emoji
+const TEAM_FLAG = {
+  "argentinien": "🇦🇷", "argentina": "🇦🇷",
+  "australien": "🇦🇺", "australia": "🇦🇺",
+  "belgien": "🇧🇪", "belgium": "🇧🇪",
+  "bolivien": "🇧🇴", "bolivia": "🇧🇴",
+  "bosnien-herzegowina": "🇧🇦", "bosnien und herzegowina": "🇧🇦", "bosnia and herzegovina": "🇧🇦",
+  "brasilien": "🇧🇷", "brazil": "🇧🇷",
+  "chile": "🇨🇱",
+  "china": "🇨🇳", "china pr": "🇨🇳",
+  "costa rica": "🇨🇷",
+  "dänemark": "🇩🇰", "denmark": "🇩🇰",
+  "deutschland": "🇩🇪", "germany": "🇩🇪",
+  "ecuador": "🇪🇨",
+  "elfenbeinküste": "🇨🇮", "ivory coast": "🇨🇮",
+  "england": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+  "frankreich": "🇫🇷", "france": "🇫🇷",
+  "ghana": "🇬🇭",
+  "honduras": "🇭🇳",
+  "iran": "🇮🇷", "ir iran": "🇮🇷",
+  "japan": "🇯🇵",
+  "kamerun": "🇨🇲", "cameroon": "🇨🇲",
+  "kanada": "🇨🇦", "canada": "🇨🇦",
+  "kap verde": "🇨🇻", "cape verde": "🇨🇻",
+  "katar": "🇶🇦", "qatar": "🇶🇦",
+  "kolumbien": "🇨🇴", "colombia": "🇨🇴",
+  "kroatien": "🇭🇷", "croatia": "🇭🇷",
+  "kuba": "🇨🇺", "cuba": "🇨🇺",
+  "marokko": "🇲🇦", "morocco": "🇲🇦",
+  "mexiko": "🇲🇽", "mexico": "🇲🇽",
+  "neuseeland": "🇳🇿", "new zealand": "🇳🇿",
+  "niederlande": "🇳🇱", "netherlands": "🇳🇱",
+  "nigeria": "🇳🇬",
+  "nordkorea": "🇰🇵", "korea dpr": "🇰🇵",
+  "norwegen": "🇳🇴", "norway": "🇳🇴",
+  "österreich": "🇦🇹", "austria": "🇦🇹",
+  "panama": "🇵🇦",
+  "paraguay": "🇵🇾",
+  "peru": "🇵🇪",
+  "polen": "🇵🇱", "poland": "🇵🇱",
+  "portugal": "🇵🇹",
+  "saudi-arabien": "🇸🇦", "saudi arabia": "🇸🇦",
+  "schottland": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "scotland": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+  "schweiz": "🇨🇭", "switzerland": "🇨🇭",
+  "senegal": "🇸🇳",
+  "serbien": "🇷🇸", "serbia": "🇷🇸",
+  "slowenien": "🇸🇮", "slovenia": "🇸🇮",
+  "spanien": "🇪🇸", "spain": "🇪🇸",
+  "südafrika": "🇿🇦", "south africa": "🇿🇦",
+  "südkorea": "🇰🇷", "south korea": "🇰🇷", "korea republic": "🇰🇷",
+  "tschechien": "🇨🇿", "czech republic": "🇨🇿", "czechia": "🇨🇿",
+  "tunesien": "🇹🇳", "tunisia": "🇹🇳",
+  "türkei": "🇹🇷", "turkey": "🇹🇷", "türkiye": "🇹🇷",
+  "ukraine": "🇺🇦",
+  "ungarn": "🇭🇺", "hungary": "🇭🇺",
+  "uruguay": "🇺🇾",
+  "usa": "🇺🇸", "united states": "🇺🇸",
+  "venezuela": "🇻🇪",
+  "wales": "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
+};
+
 function getSheetId() {
   const params = new URLSearchParams(location.search);
   return params.get("sid") || SHEET_ID;
@@ -321,15 +382,20 @@ async function renderLeaderboard() {
   const statusEl = document.getElementById("status");
 
   try {
-    const [{ rows: lbRows }, { rows: matchRows }, { rows: pointsRows }, tipsData] = await Promise.all([
+    const [{ rows: lbRows }, { rows: matchRows }, { rows: pointsRows }, tipsData, spTipsData] = await Promise.all([
       fetchSheet("Leaderboard"),
       fetchSheet("Matches"),
       fetchSheet("Points"),
       fetchSheet("Tips").catch(() => ({ headers: [], rows: [] })),
+      fetchSheet("Special_Tips").catch(() => ({ headers: [], rows: [] })),
     ]);
 
     const tipsMap = {};
     tipsData.rows.forEach(r => { tipsMap[String(r[0])] = r; });
+
+    // player → Weltmeister tip (Special_Tips col 1)
+    const weltmeisterMap = {};
+    spTipsData.rows.forEach(r => { if (r[0]) weltmeisterMap[String(r[0])] = String(r[1] || ""); });
 
     if (upcomingContainer && matchRows.length) {
       renderUpcoming(matchRows, upcomingContainer);
@@ -361,9 +427,12 @@ async function renderLeaderboard() {
       const specialPts = row[4];
       const medal = rank === 1 ? "🏆" : "";
       const rowClass = rank === 1 ? "rank-1" : "";
+      const wm = weltmeisterMap[String(name)] || "";
+      const flag = wm ? (TEAM_FLAG[wm.toLowerCase()] || "") : "";
+      const flagHtml = flag ? ` <span title="${escHtml(wm)}">${flag}</span>` : "";
       html += `<tr class="${rowClass}">
         <td class="rank-cell">${medal || rank}</td>
-        <td class="name-cell">${escHtml(String(name))}</td>
+        <td class="name-cell">${escHtml(String(name))}${flagHtml}</td>
         <td class="pts-cell total">${total}</td>
         <td class="pts-cell">${matchPts}</td>
         <td class="pts-cell">${specialPts}</td>
