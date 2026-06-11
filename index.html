@@ -311,6 +311,25 @@
 
     .news-message p:last-child { margin-bottom: 0; }
 
+    /* ── Progress chart ─────────────────────────────── */
+    .chart-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem 0.75rem;
+      margin-top: 1.75rem;
+    }
+
+    .chart-box h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .chart-box canvas { max-height: 320px; }
+
     @media (max-width: 500px) {
       .leaderboard-table th:nth-child(4),
       .leaderboard-table td:nth-child(4),
@@ -340,10 +359,12 @@
     <div id="leaderboard-container">
       <p class="empty">Lade Daten …</p>
     </div>
+    <div id="chart-container"></div>
     <div id="news-container"></div>
   </main>
 
-  <script src="js/app.js?v=4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script src="js/app.js?v=5"></script>
   <script>
     autoRefresh(renderLeaderboard);
   </script>

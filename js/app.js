@@ -436,6 +436,9 @@ async function renderLeaderboard() {
     html += "</tbody></table>";
     container.innerHTML = html;
 
+    const chartContainer = document.getElementById("chart-container");
+    if (chartContainer) renderProgressChart(matchRows, pointsRows, chartContainer);
+
     const newsContainer = document.getElementById("news-container");
     if (newsContainer) renderNews(newsData.rows, newsContainer);
 
@@ -444,6 +447,86 @@ async function renderLeaderboard() {
     container.innerHTML = `<p class="error">Fehler: ${escHtml(e.message)}</p>`;
     console.error(e);
   }
+}
+
+// ── Points progression chart ──────────────────────────────────────────────────
+
+let _progressChart = null;
+
+const CHART_COLORS = ["#4f86f7","#f5c518","#4ade80","#f87171","#c084fc","#fb923c","#38bdf8","#f472b6"];
+const CHART_SHAPES = ["circle","triangle","rect","rectRot","star","cross","crossRot","dash"];
+
+function renderProgressChart(matchRows, pointsRows, container) {
+  if (typeof Chart === "undefined") { container.innerHTML = ""; return; }
+
+  const groupMatchIndices = [];
+  matchRows.forEach((m, i) => { if (m[4] === "Group Stage") groupMatchIndices.push(i); });
+
+  // Only played matches (have a result)
+  const playedIndices = groupMatchIndices.filter(i => matchRows[i][7] !== "" && matchRows[i][8] !== "");
+  if (!playedIndices.length) { container.innerHTML = ""; return; }
+
+  const labels = ["0", ...playedIndices.map((_, i) => String(i + 1))];
+
+  const datasets = pointsRows.map((row, pi) => {
+    const name = String(row[0]);
+    let cum = 0;
+    const data = [0];
+    playedIndices.forEach((matchIdx, colOffset) => {
+      const colIdx = groupMatchIndices.indexOf(matchIdx) + 1;
+      const v = parseInt(String(row[colIdx] ?? ""), 10);
+      cum += isNaN(v) ? 0 : v;
+      data.push(cum);
+    });
+    const color = CHART_COLORS[pi % CHART_COLORS.length];
+    return {
+      label: name,
+      data,
+      borderColor: color,
+      backgroundColor: color,
+      pointStyle: CHART_SHAPES[pi % CHART_SHAPES.length],
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      tension: 0.3,
+      borderWidth: 2,
+    };
+  });
+
+  container.innerHTML = `<div class="chart-box"><h3>Punkteverlauf</h3><canvas id="progress-chart"></canvas></div>`;
+  const ctx = document.getElementById("progress-chart").getContext("2d");
+
+  if (_progressChart) { _progressChart.destroy(); _progressChart = null; }
+
+  _progressChart = new Chart(ctx, {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: items => `Nach Spiel ${items[0].label}`,
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y} Pkt`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          title: { display: true, text: "Gespielte Spiele", color: "#8892b0" },
+          ticks: { color: "#8892b0" },
+          grid: { color: "#2a3555" },
+        },
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: "Punkte", color: "#8892b0" },
+          ticks: { color: "#8892b0" },
+          grid: { color: "#2a3555" },
+        },
+      },
+    },
+  });
 }
 
 function renderNews(rows, container) {
