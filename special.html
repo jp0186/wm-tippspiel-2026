@@ -128,13 +128,24 @@
       padding-bottom: 0.45rem;
     }
 
-    th.sp-phase + th.sp-phase,
-    th.sp-total-hdr { border-left: 2px solid var(--border); }
+    th.sp-phase + th.sp-phase { border-left: 2px solid var(--border); }
+
+    th.sp-total-hdr {
+      border-left: 2px solid var(--border);
+      position: sticky;
+      right: 0;
+      z-index: 3;
+      background: #0f1628;
+    }
 
     th.sp-player-hdr {
       text-align: left;
       color: var(--text-muted);
       border-right: 2px solid var(--border);
+      position: sticky;
+      left: 0;
+      z-index: 3;
+      background: #0f1628;
     }
 
     .special-table th small {
@@ -156,7 +167,16 @@
       vertical-align: middle;
     }
 
-    .special-table td:last-child { border-right: none; }
+    .special-table td:last-child {
+      border-right: none;
+      border-left: 2px solid var(--border);
+      position: sticky;
+      right: 0;
+      z-index: 1;
+      background: var(--surface);
+    }
+
+    .special-table tbody tr:hover td:last-child { background: var(--surface2); }
     .special-table tbody tr:hover { background: var(--surface2); }
 
     td.sp-player {
@@ -164,7 +184,13 @@
       font-weight: 600;
       color: var(--text);
       border-right: 2px solid var(--border);
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: var(--surface);
     }
+
+    .special-table tbody tr:hover td.sp-player { background: var(--surface2); }
 
     /* Phase column dividers */
     .special-table td:nth-child(5),
