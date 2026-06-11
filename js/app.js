@@ -722,7 +722,7 @@ async function renderPlayers() {
     players.forEach(p => {
       const src = playerImgSrc(p.name);
       html += `<a class="player-tile" href="player.html?player=${encodeURIComponent(p.name)}">
-        <img src="${escHtml(src)}" alt="${escHtml(p.name)}"
+        <img class="player-tile-img" src="${escHtml(src)}" alt="${escHtml(p.name)}"
              onerror="this.onerror=null;this.src='img/placeholder.svg'">
         <div class="player-tile-name">${escHtml(p.name)}</div>
         <div class="player-tile-pts">${p.total} Pkt</div>
