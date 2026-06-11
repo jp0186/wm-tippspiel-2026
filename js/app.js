@@ -319,7 +319,7 @@ async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
 
   const players = pointsMatrix.map(r => r[0]);
 
-  let html = `<div class="today-section"><h3>Heutige Spiele</h3>`;
+  let html = `<div class="today-section"><h3>Heutige Spiele</h3><div class="today-matches-grid">`;
 
   const now = Date.now();
 
@@ -362,7 +362,7 @@ async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
     html += `</div>`;
   }
 
-  html += `</div>`;
+  html += `</div></div>`;
   container.innerHTML = html;
 }
 
@@ -596,7 +596,7 @@ async function renderResults() {
     for (const [groupName, items] of Object.entries(groups)) {
       if (items[0].match[4] !== "Group Stage") continue;
 
-      html += `<section class="group-section"><h2>Gruppe ${escHtml(groupName)}</h2><div class="group-matches">`;
+      html += `<section class="group-section"><h2>Gruppe ${escHtml(groupName)}</h2>`;
 
       items.forEach(({ match, matchIdx }) => {
         const date = new Date(match[1]).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -639,7 +639,7 @@ async function renderResults() {
         html += `</div>`;
       });
 
-      html += `</div></section>`;
+      html += `</section>`;
     }
 
     container.innerHTML = html || "<p class='empty'>Keine Gruppenspiele gefunden.</p>";
