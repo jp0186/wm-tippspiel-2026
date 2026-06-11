@@ -146,6 +146,25 @@
     .today-tip-pts.miss    { color: var(--red); }
     .today-tip-pts.no-result { color: var(--text-muted); }
 
+    .live-badge {
+      display: inline-block;
+      background: #ef4444;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.1em 0.5em;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+      animation: livepulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes livepulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
     /* ── Upcoming matches ───────────────────────────── */
     .upcoming-section {
       background: var(--surface);

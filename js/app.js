@@ -321,6 +321,8 @@ async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
 
   let html = `<div class="today-section"><h3>Heutige Spiele</h3>`;
 
+  const now = Date.now();
+
   for (const { m, i: matchIdx } of todayMatches) {
     const home = teamDE(String(m[5]));
     const away = teamDE(String(m[6]));
@@ -331,9 +333,13 @@ async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
     const gmCol = groupMatchIndices.indexOf(matchIdx);
     const ptCol = gmCol >= 0 ? gmCol + 1 : -1;
 
+    const kickoffDt = new Date(`${today}T${String(m[2])}:00`);
+    const isLive = !isNaN(kickoffDt) && now >= kickoffDt.getTime() && now < kickoffDt.getTime() + 90 * 60 * 1000;
+    const liveBadge = isLive ? ` <span class="live-badge">● LIVE</span>` : "";
+
     html += `<div class="today-match-card">
       <div class="today-match-header">
-        <span class="today-match-teams">${escHtml(home)} <span class="vs">vs</span> ${escHtml(away)}</span>
+        <span class="today-match-teams">${escHtml(home)} <span class="vs">vs</span> ${escHtml(away)}${liveBadge}</span>
         <span class="today-match-result ${hasResult ? "final" : "pending"}">${escHtml(resultStr)}</span>
       </div>`;
 
