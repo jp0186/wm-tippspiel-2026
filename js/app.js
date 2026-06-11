@@ -705,7 +705,8 @@ function escHtml(s) {
 }
 
 function playerImgSrc(name) {
-  return `img/${name.toLowerCase().replace(/\s+/g, "_")}.jpg`;
+  const slug = name.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, "_");
+  return `img/${slug}.jpg`;
 }
 
 // ── Mitspieler overview (players.html) ────────────────────────────────────────
