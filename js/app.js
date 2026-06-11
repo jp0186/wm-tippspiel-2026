@@ -674,9 +674,11 @@ async function renderSpecial() {
   const statusEl = document.getElementById("status");
 
   try {
-    const [spPtsData, spTipsData] = await Promise.all([
+    const [spPtsData, spTipsData, matchData, scorersData] = await Promise.all([
       fetchSheet("Special_Points"),
       fetchSheet("Special_Tips").catch(() => ({ headers: [], rows: [] })),
+      fetchSheet("Matches").catch(() => ({ headers: [], rows: [] })),
+      fetchSheet("Top_Scorers").catch(() => ({ headers: [], rows: [] })),
     ]);
 
     if (!spPtsData.rows.length) {
@@ -742,7 +744,44 @@ async function renderSpecial() {
       </tr>`;
     }).join("");
 
-    const html = `<div class="sp-outer"><div class="sp-scroll">
+    // ── Team goals (computed from Matches tab) ──────────────────────────────
+    const teamGoals = {};
+    matchData.rows.forEach(m => {
+      if (String(m[4]) !== "Group Stage") return;
+      const home = teamDE(String(m[5])), away = teamDE(String(m[6]));
+      const hs = parseInt(m[7]), as = parseInt(m[8]);
+      if (!isNaN(hs) && hs >= 0) teamGoals[home] = (teamGoals[home] || 0) + hs;
+      if (!isNaN(as) && as >= 0) teamGoals[away] = (teamGoals[away] || 0) + as;
+    });
+    const topTeams = Object.entries(teamGoals)
+      .filter(([, g]) => g > 0)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10);
+
+    // ── Top scorers (from Top_Scorers tab) ──────────────────────────────────
+    const topScorers = scorersData.rows
+      .filter(r => r[0] && parseInt(r[2]) > 0)
+      .slice(0, 10);
+
+    // Shared ranked-list renderer
+    const miniTable = (title, items, nameFn, valFn) => {
+      if (!items.length) return `<div class="sp-mini-table-box"><h3>${title}</h3><p class="sp-mini-empty">Noch keine Daten</p></div>`;
+      let rank = 1, prevVal = null, count = 0;
+      const rowsHtml = items.map(item => {
+        const v = valFn(item);
+        if (v !== prevVal) { rank = count + 1; prevVal = v; }
+        count++;
+        return `<tr><td class="sp-mini-rank">${rank}</td><td>${escHtml(nameFn(item))}</td><td class="sp-mini-val">${v}</td></tr>`;
+      }).join("");
+      return `<div class="sp-mini-table-box"><h3>${title}</h3><table class="sp-mini-table"><tbody>${rowsHtml}</tbody></table></div>`;
+    };
+
+    const sideTables = (topScorers.length || topTeams.length) ? `<div class="sp-side-tables">
+      ${miniTable("Torschützenliste", topScorers, r => `${r[0]} (${teamDE(String(r[1]))})`, r => parseInt(r[2]))}
+      ${miniTable("Torreichste Teams", topTeams, ([name]) => name, ([, g]) => g)}
+    </div>` : "";
+
+    const html = `${sideTables}<div class="sp-outer"><div class="sp-scroll">
       <table class="special-table">
         <thead>
           <tr>
