@@ -699,79 +699,52 @@ async function renderSpecial() {
       };
     });
 
-    const playerHeader = players.map(p => `<th>${escHtml(p.name)}</th>`).join("");
-
-    // Cell showing tip text + optional awarded points
-    const tipCell = (tip, pts) => {
+    // Cell: tip value + optional awarded points badge
+    const cell = (tip, pts) => {
       const n = parseInt(pts, 10);
-      const hasPoints = !isNaN(n) && n > 0;
-      const cls = hasPoints ? "scored" : (tip ? "miss" : "miss");
-      const tipDisplay = tip || "–";
-      return `<td class="sp-pts ${cls}">${escHtml(tipDisplay)}${hasPoints ? ` <em>(${n})</em>` : ""}</td>`;
+      const scored = !isNaN(n) && n > 0;
+      return `<td class="sp-cell ${scored ? "scored" : tip ? "miss" : "empty"}">${escHtml(tip || "–")}${scored ? `<em>(${n})</em>` : ""}</td>`;
     };
 
-    // Row for semi-finalists: show all 4 picks stacked in one cell per player
-    const sfRow = () => {
-      const cells = players.map(p => {
-        const n = parseInt(p.sf_pts, 10);
-        const hasPoints = !isNaN(n) && n > 0;
-        const cls = hasPoints ? "scored" : "miss";
-        const picks = p.sf_tips.filter(t => t).join(", ") || "–";
-        return `<td class="sp-pts ${cls}">${escHtml(picks)}${hasPoints ? ` <em>(${n})</em>` : ""}</td>`;
-      }).join("");
-      return `<tr><td class="sp-label">Halbfinalisten (je 5 Pkt)</td>${cells}</tr>`;
-    };
+    const rows = players.map(p => {
+      const sfPicks = p.sf_tips.filter(t => t).join(", ") || "–";
+      const sfN = parseInt(p.sf_pts, 10);
+      const sfScored = !isNaN(sfN) && sfN > 0;
+      const tggGuess = p.tgg_guess !== "" ? String(p.tgg_guess) : "–";
+      const tggN = parseInt(p.tgg_pts, 10);
+      const tggScored = !isNaN(tggN) && tggN > 0;
+      return `<tr>
+        <td class="sp-player">${escHtml(p.name)}</td>
+        ${cell(p.tmgg_tip, p.tmgg_pts)}
+        ${cell(p.pmgg_tip, p.pmgg_pts)}
+        <td class="sp-cell ${tggScored ? "scored" : "miss"}">${escHtml(tggGuess)}${tggScored ? `<em>(${tggN})</em>` : ""}</td>
+        <td class="sp-cell ${sfScored ? "scored" : "miss"}">${escHtml(sfPicks)}${sfScored ? `<em>(${sfN})</em>` : ""}</td>
+        ${cell(p.tw_tip, p.tw_pts)}
+        ${cell(p.ts_tip, p.ts_pts)}
+        <td class="sp-cell total">${p.total !== "" ? p.total : 0}</td>
+      </tr>`;
+    }).join("");
 
-    // Total goals row: show guess + points
-    const tggRow = () => {
-      const cells = players.map(p => {
-        const guess = p.tgg_guess !== "" ? p.tgg_guess : "–";
-        const n = parseInt(p.tgg_pts, 10);
-        const hasPoints = !isNaN(n) && n > 0;
-        const cls = hasPoints ? "scored" : "miss";
-        return `<td class="sp-pts ${cls}">${escHtml(String(guess))}${hasPoints ? ` <em>(${n})</em>` : ""}</td>`;
-      }).join("");
-      return `<tr><td class="sp-label">Gesamttore Gruppenphase (10/5 Pkt)</td>${cells}</tr>`;
-    };
-
-    const simpleRow = (label, tipFn, ptsFn) => {
-      const cells = players.map(p => tipCell(tipFn(p), ptsFn(p))).join("");
-      return `<tr><td class="sp-label">${label}</td>${cells}</tr>`;
-    };
-
-    const html = `
-    <div class="special-phase">
-      <h3>Nach der Gruppenphase</h3>
+    const html = `<div class="sp-scroll">
       <table class="special-table">
-        <thead><tr><th>Tipp</th>${playerHeader}</tr></thead>
-        <tbody>
-          ${simpleRow("Mannschaft — meiste Tore (5 Pkt)", p => p.tmgg_tip, p => p.tmgg_pts)}
-          ${simpleRow("Spieler — meiste Tore (5 Pkt)",   p => p.pmgg_tip, p => p.pmgg_pts)}
-          ${tggRow()}
-        </tbody>
-      </table>
-    </div>
-
-    <div class="special-phase">
-      <h3>Nach dem Halbfinale</h3>
-      <table class="special-table">
-        <thead><tr><th>Tipp</th>${playerHeader}</tr></thead>
-        <tbody>${sfRow()}</tbody>
-      </table>
-    </div>
-
-    <div class="special-phase">
-      <h3>Nach dem Finale</h3>
-      <table class="special-table">
-        <thead><tr><th>Tipp</th>${playerHeader}</tr></thead>
-        <tbody>
-          ${simpleRow("Weltmeister (15 Pkt)",            p => p.tw_tip, p => p.tw_pts)}
-          ${simpleRow("Torschützenkönig gesamt (10 Pkt)", p => p.ts_tip, p => p.ts_pts)}
-          <tr class="total-special">
-            <td class="sp-label"><strong>Spezialpunkte gesamt</strong></td>
-            ${players.map(p => `<td class="sp-pts total">${p.total !== "" ? p.total : 0}</td>`).join("")}
+        <thead>
+          <tr>
+            <th rowspan="2" class="sp-player-hdr">Spieler</th>
+            <th colspan="3" class="sp-phase">Gruppenphase</th>
+            <th colspan="1" class="sp-phase">Halbfinale</th>
+            <th colspan="2" class="sp-phase">Finale</th>
+            <th rowspan="2" class="sp-phase sp-total-hdr">Gesamt</th>
           </tr>
-        </tbody>
+          <tr>
+            <th>Team<br><small>Tore 5P</small></th>
+            <th>Spieler<br><small>Tore 5P</small></th>
+            <th>Gesamttore<br><small>10/5P</small></th>
+            <th>Halbfinalisten<br><small>je 5P</small></th>
+            <th>Weltmeister<br><small>15P</small></th>
+            <th>Torschütze<br><small>10P</small></th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
       </table>
     </div>`;
 

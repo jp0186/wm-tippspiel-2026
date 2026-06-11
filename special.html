@@ -74,83 +74,103 @@
       margin-bottom: 1rem;
     }
 
-    .special-phase {
-      margin-bottom: 2rem;
-    }
-
-    .special-phase h3 {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 0.85rem;
-      padding-bottom: 0.4rem;
-      border-bottom: 2px solid var(--border);
+    /* ── Scrollable wrapper for wide table ── */
+    .sp-scroll {
+      overflow-x: auto;
+      border-radius: var(--radius);
     }
 
     .special-table {
       width: 100%;
       border-collapse: collapse;
       background: var(--surface);
-      border-radius: var(--radius);
-      overflow: hidden;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
+      white-space: nowrap;
     }
 
-    .special-table thead tr { background: var(--surface2); }
+    /* Phase header row */
+    .special-table thead tr:first-child { background: #0f1628; }
+    .special-table thead tr:last-child  { background: var(--surface2); }
 
     .special-table th {
-      padding: 0.65rem 0.9rem;
+      padding: 0.55rem 0.85rem;
       text-align: center;
-      font-size: 0.78rem;
+      font-size: 0.73rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: var(--text-muted);
       border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      vertical-align: bottom;
     }
 
-    .special-table th:first-child { text-align: left; }
+    .special-table th:last-child { border-right: none; }
 
+    th.sp-phase {
+      color: var(--accent);
+      font-size: 0.7rem;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 0.45rem;
+    }
+
+    th.sp-phase + th.sp-phase,
+    th.sp-total-hdr { border-left: 2px solid var(--border); }
+
+    th.sp-player-hdr {
+      text-align: left;
+      color: var(--text-muted);
+      border-right: 2px solid var(--border);
+    }
+
+    .special-table th small {
+      display: block;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      text-transform: none;
+      letter-spacing: 0;
+      margin-top: 0.15rem;
+      opacity: 0.7;
+    }
+
+    /* Body */
     .special-table td {
-      padding: 0.6rem 0.9rem;
+      padding: 0.55rem 0.85rem;
       border-top: 1px solid var(--border);
+      border-right: 1px solid var(--border);
       text-align: center;
+      vertical-align: middle;
     }
 
-    .special-table tbody tr:last-child td { border-bottom: none; }
+    .special-table td:last-child { border-right: none; }
     .special-table tbody tr:hover { background: var(--surface2); }
 
-    .sp-label {
-      text-align: left !important;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      width: 18rem;
-      min-width: 18rem;
+    td.sp-player {
+      text-align: left;
+      font-weight: 600;
+      color: var(--text);
+      border-right: 2px solid var(--border);
     }
 
-    .sp-pts { font-weight: 700; font-variant-numeric: tabular-nums; }
-    .sp-pts.scored { color: var(--green); }
-    .sp-pts.miss   { color: var(--text-muted); font-weight: 400; }
-    .sp-pts.total  { color: var(--accent); font-size: 1.05rem; }
+    /* Phase column dividers */
+    .special-table td:nth-child(5),
+    .special-table td:nth-child(6),
+    .special-table td:nth-child(8) { border-left: 2px solid var(--border); }
 
-    .sp-pts em {
+    .sp-cell { font-variant-numeric: tabular-nums; }
+    .sp-cell.scored { color: var(--green); font-weight: 600; }
+    .sp-cell.miss   { color: var(--text-muted); }
+    .sp-cell.empty  { color: var(--border); }
+    .sp-cell.total  { color: var(--accent); font-weight: 700; font-size: 1rem; }
+
+    .sp-cell em {
       font-style: normal;
-      font-weight: 700;
-      color: var(--green);
-      font-size: 0.8em;
+      font-size: 0.75em;
       margin-left: 0.3em;
+      opacity: 0.85;
     }
-
-    .total-special td { border-top: 2px solid var(--border) !important; }
 
     .empty, .error { text-align: center; padding: 3rem; color: var(--text-muted); }
     .error { color: var(--red); }
-
-    @media (max-width: 600px) {
-      .sp-label { min-width: 8rem; font-size: 0.78rem; }
-      .special-table th, .special-table td { padding: 0.5rem 0.5rem; }
-    }
   </style>
 </head>
 
