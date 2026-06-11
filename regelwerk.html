@@ -1,87 +1,223 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Regelwerk Tippspiel WM 2026</title>
+  <meta charset="UTF-8" />
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WM Tippspiel 2026 — Regeln</title>
   <style>
+    :root {
+      --bg: #0a0e1a;
+      --surface: #131929;
+      --surface2: #1c2540;
+      --border: #2a3555;
+      --text: #e8eaf6;
+      --text-muted: #8892b0;
+      --gold: #f5c518;
+      --green: #4ade80;
+      --accent: #4f86f7;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: system-ui, -apple-system, sans-serif;
-      max-width: 680px;
-      margin: 3rem auto;
-      padding: 0 1.5rem;
-      color: #1a1a1a;
-      line-height: 1.7;
-      font-size: 16px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      min-height: 100vh;
     }
-    h1 {
-      font-size: 22px;
-      font-weight: 500;
-      margin-bottom: 2rem;
+
+    header {
+      background: #f5f5f0;
+      padding: 1.5rem 1.5rem 1.25rem;
+      text-align: center;
     }
-    h2 {
-      font-size: 16px;
-      font-weight: 500;
-      margin-top: 2rem;
-      margin-bottom: 0.75rem;
+
+    header img.logo {
+      height: 216px;
+      width: 216px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
     }
-    hr {
-      border: none;
-      border-top: 1px solid #e5e5e5;
-      margin: 1.5rem 0;
+
+    nav {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      padding: 0.75rem 1rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
     }
-    p {
-      margin: 0.25rem 0;
+
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.4rem 1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      transition: all 0.15s;
     }
-    ol {
+
+    nav a:hover, nav a.active { background: var(--accent); color: #fff; }
+
+    main { max-width: 720px; margin: 2rem auto; padding: 0 1rem 3rem; }
+
+    /* ── Section cards ── */
+    .rules-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .rules-section h2 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    /* ── Points table ── */
+    .pts-table { width: 100%; border-collapse: collapse; }
+
+    .pts-table td {
+      padding: 0.45rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.92rem;
+      line-height: 1.4;
+    }
+
+    .pts-table tr:last-child td { border-bottom: none; }
+
+    .pts-table .pts-val {
+      text-align: right;
+      font-weight: 700;
+      color: var(--gold);
+      white-space: nowrap;
+      padding-left: 1.5rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Tiebreaker list ── */
+    .rules-ol {
       padding-left: 1.25rem;
-      margin: 0.5rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
     }
-    li {
-      margin: 0.25rem 0;
+
+    .rules-ol li { font-size: 0.92rem; line-height: 1.5; }
+
+    /* ── Plain prose ── */
+    .rules-p { font-size: 0.92rem; line-height: 1.6; color: var(--text); }
+    .rules-p + .rules-p { margin-top: 0.5rem; }
+
+    /* ── Trophy callout ── */
+    .trophy-callout {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 1rem;
+      font-weight: 600;
     }
+
+    .trophy-icon { font-size: 2rem; flex-shrink: 0; }
   </style>
 </head>
+
 <body>
+  <header>
+    <img src="img/logo.png" alt="WM Tippspiel Logo" class="logo">
+  </header>
 
-<h1>Regelwerk Tippspiel WM 2026</h1>
+  <nav>
+    <a href="index.html">🏆 Rangliste</a>
+    <a href="results.html">📋 Tipps / Ergebnisse</a>
+    <a href="special.html">⭐ Spezialtipps</a>
+    <a href="players.html">👥 Mitspieler</a>
+    <a href="regelwerk.html" class="active">📜 Regeln</a>
+  </nav>
 
-<hr>
+  <main>
 
-<h2>1. Punkteverteilung</h2>
+    <div class="rules-section">
+      <h2>1. Punkteverteilung</h2>
+      <table class="pts-table">
+        <tbody>
+          <tr>
+            <td>Richtiger Tipp (Sieg / Unentschieden / Niederlage)</td>
+            <td class="pts-val">1 Pkt</td>
+          </tr>
+          <tr>
+            <td>Richtiges Resultat (exakter Spielstand)</td>
+            <td class="pts-val">3 Pkt</td>
+          </tr>
+          <tr>
+            <td>Team- oder Spieler-Tore (Vorrunde)</td>
+            <td class="pts-val">5 Pkt</td>
+          </tr>
+          <tr>
+            <td>Richtiger Halbfinalist (pro Mannschaft)</td>
+            <td class="pts-val">5 Pkt</td>
+          </tr>
+          <tr>
+            <td>Gesamttorzahl Vorrunde – nächster Tipp</td>
+            <td class="pts-val">10 Pkt</td>
+          </tr>
+          <tr>
+            <td>Gesamttorzahl Vorrunde – zweitnächster Tipp</td>
+            <td class="pts-val">5 Pkt</td>
+          </tr>
+          <tr>
+            <td>Gesamttorzahl Vorrunde – Tipp innerhalb von 5 Toren</td>
+            <td class="pts-val">5 Pkt</td>
+          </tr>
+          <tr>
+            <td>Gesamttorzahl Vorrunde – exakter Tipp</td>
+            <td class="pts-val">10 Pkt</td>
+          </tr>
+          <tr>
+            <td>Torschützenkönig der WM</td>
+            <td class="pts-val">10 Pkt</td>
+          </tr>
+          <tr>
+            <td>WM-Sieger</td>
+            <td class="pts-val">15 Pkt</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-<p>Richtiger Tipp (Sieg / Unentschieden / Niederlage): 1 Punkt</p>
-<p>Richtiges Resultat (exakter Spielstand): 3 Punkte</p>
-<p>Team-Tore / Spieler-Tore (Vorrunde): 5 Punkte</p>
-<p>Torschützenkönig der WM: 10 Punkte</p>
-<p>Gesamttorzahl Vorrunde – nächster Tipp: 10 Punkte</p>
-<p>Gesamttorzahl Vorrunde – zweitnächster Tipp: 5 Punkte</p>
-<p>Gesamttorzahl Vorrunde – Tipp innerhalb von 5 Toren (exakt): 5 Punkte (10 Punkte)</p>
-<p>Richtiger Halbfinalist: 5 Punkte pro korrekt getippter Mannschaft</p>
-<p>WM-Sieger: 15 Punkte</p>
+    <div class="rules-section">
+      <h2>2. Gesamttorzahl Vorrunde</h2>
+      <p class="rules-p">Die Punkte für den nächsten und zweitnächsten Tipp werden in jedem Fall vergeben, unabhängig davon, wie weit alle Tipps vom tatsächlichen Ergebnis entfernt sind. Bei Gleichstand erhalten alle betroffenen Personen die vollen Punkte für den jeweiligen Rang.</p>
+    </div>
 
-<hr>
+    <div class="rules-section">
+      <h2>3. Gleichstand im Gesamtklassement</h2>
+      <p class="rules-p" style="margin-bottom: 0.75rem">Bei Punktegleichstand wird folgende Reihenfolge angewendet:</p>
+      <ol class="rules-ol">
+        <li>Korrekter Tipp auf den WM-Sieger</li>
+        <li>Anzahl richtiger Resultate (3-Punkte-Tipps)</li>
+      </ol>
+      <p class="rules-p" style="margin-top: 0.75rem">Besteht danach noch immer Gleichstand, teilen sich die betroffenen Personen den Sieg.</p>
+    </div>
 
-<h2>2. Gesamttorzahl Vorrunde</h2>
+    <div class="rules-section">
+      <h2>4. Preis</h2>
+      <div class="trophy-callout">
+        <span class="trophy-icon">🏆</span>
+        <span>Die siegende Person erhält die FIFA Picks Prize Trophäe.</span>
+      </div>
+    </div>
 
-<p>Die Punkte für den nächsten und zweitnächsten Tipp werden in jedem Fall vergeben, unabhängig davon, wie weit alle Tipps vom tatsächlichen Ergebnis entfernt sind. Bei Gleichstand erhalten alle betroffenen Personen die vollen Punkte für den jeweiligen Rang.</p>
-
-<hr>
-
-<h2>3. Gleichstand im Gesamtklassement</h2>
-
-<p>Bei Punktegleichstand wird folgende Reihenfolge angewendet:</p>
-<ol>
-  <li>Korrekter Tipp auf den WM-Sieger</li>
-  <li>Anzahl richtiger Resultate (3-Punkte-Tipps)</li>
-</ol>
-<p>Besteht danach noch immer Gleichstand, teilen sich die betroffenen Personen den Sieg.</p>
-
-<hr>
-
-<h2>4. Preis</h2>
-
-<p>Die siegende Person erhält die FIFA Picks Prize Trophäe.</p>
-
+  </main>
 </body>
+
 </html>
