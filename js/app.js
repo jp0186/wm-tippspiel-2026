@@ -772,17 +772,39 @@ async function renderPlayerDetail() {
 
     // Count exact / outcome / miss from match points columns
     const groupMatchCount = matchRows.filter(m => m[4] === "Group Stage").length;
-    let exact = 0, outcome = 0, miss = 0, pending = 0;
-    if (ptsRow) {
+    const countStats = row => {
+      let e = 0, o = 0, ms = 0;
       for (let i = 1; i <= groupMatchCount; i++) {
-        const v = parseInt(String(ptsRow[i] ?? ""), 10);
-        if (isNaN(v)) pending++;
-        else if (v === 3) exact++;
-        else if (v === 1) outcome++;
-        else miss++;
+        const v = parseInt(String(row?.[i] ?? ""), 10);
+        if (v === 3) e++; else if (v === 1) o++; else if (v === 0) ms++;
       }
-    }
-    const played = exact + outcome + miss;
+      return { exact: e, outcome: o, miss: ms, played: e + o + ms };
+    };
+    const myStats = countStats(ptsRow);
+    const { exact, outcome, miss } = myStats;
+    const played = myStats.played;
+
+    // Rank helper: 1 = best; higher value = better rank (desc)
+    const rankDesc = (myVal, allVals) => {
+      const sorted = [...allVals].filter(v => !isNaN(v)).sort((a, b) => b - a);
+      return sorted.findIndex(v => v <= myVal) + 1;
+    };
+
+    const allTotal   = lbRows.map(r => Number(r[2]));
+    const allMatch   = lbRows.map(r => Number(r[3]));
+    const allSpecial = lbRows.map(r => Number(r[4]));
+    const allExact   = ptsRows.map(r => countStats(r).exact);
+    const allOutcome = ptsRows.map(r => countStats(r).outcome);
+    const allHit     = ptsRows.map(r => { const s = countStats(r); return s.played > 0 ? (s.exact + s.outcome) / s.played : NaN; });
+
+    const myHitRate = played > 0 ? (exact + outcome) / played : NaN;
+    const rTotal   = rankDesc(total,   allTotal);
+    const rMatch   = rankDesc(matchTotal,   allMatch);
+    const rSpecial = rankDesc(specialTotal, allSpecial);
+    const rExact   = rankDesc(exact,   allExact);
+    const rOutcome = rankDesc(outcome, allOutcome);
+    const rHit     = isNaN(myHitRate) ? null : rankDesc(myHitRate, allHit);
+    const rankTag  = r => `<span class="pd-stat-rank">#${r}</span>`;
 
     const src = playerImgSrc(playerName);
     let html = `
@@ -796,12 +818,12 @@ async function renderPlayerDetail() {
       </div>
 
       <div class="pd-stats-grid">
-        <div class="pd-stat"><span class="pd-stat-val">${total}</span><span class="pd-stat-label">Punkte gesamt</span></div>
-        <div class="pd-stat"><span class="pd-stat-val">${matchTotal}</span><span class="pd-stat-label">Spielpunkte</span></div>
-        <div class="pd-stat"><span class="pd-stat-val">${specialTotal}</span><span class="pd-stat-label">Spezialpunkte</span></div>
-        <div class="pd-stat"><span class="pd-stat-val">${exact}</span><span class="pd-stat-label">Genaue Tipps</span></div>
-        <div class="pd-stat"><span class="pd-stat-val">${outcome}</span><span class="pd-stat-label">Tendenz richtig</span></div>
-        <div class="pd-stat"><span class="pd-stat-val">${played > 0 ? Math.round(100*(exact+outcome)/played) : "–"}${played > 0 ? "%" : ""}</span><span class="pd-stat-label">Trefferquote</span></div>
+        <div class="pd-stat"><span class="pd-stat-val">${total}</span><span class="pd-stat-label">Punkte gesamt</span>${rankTag(rTotal)}</div>
+        <div class="pd-stat"><span class="pd-stat-val">${matchTotal}</span><span class="pd-stat-label">Spielpunkte</span>${rankTag(rMatch)}</div>
+        <div class="pd-stat"><span class="pd-stat-val">${specialTotal}</span><span class="pd-stat-label">Spezialpunkte</span>${rankTag(rSpecial)}</div>
+        <div class="pd-stat"><span class="pd-stat-val">${exact}</span><span class="pd-stat-label">Genaue Tipps</span>${rankTag(rExact)}</div>
+        <div class="pd-stat"><span class="pd-stat-val">${outcome}</span><span class="pd-stat-label">Tendenz richtig</span>${rankTag(rOutcome)}</div>
+        <div class="pd-stat"><span class="pd-stat-val">${played > 0 ? Math.round(100*(exact+outcome)/played) : "–"}${played > 0 ? "%" : ""}</span><span class="pd-stat-label">Trefferquote</span>${rHit ? rankTag(rHit) : ""}</div>
       </div>`;
 
     // Spezialtipps table
