@@ -318,12 +318,28 @@ async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
   matchRows.forEach((m, i) => { if (m[4] === "Group Stage") groupMatchIndices.push(i); });
 
   const players = pointsMatrix.map(r => r[0]);
-
-  let html = `<div class="today-section"><h3>Heutige Spiele</h3><div class="today-matches-grid">`;
-
   const now = Date.now();
 
-  for (const { m, i: matchIdx } of todayMatches) {
+  // A match is finished when it has a result OR kickoff + 90 min has passed
+  const isFinished = ({ m }) => {
+    const hasResult = m[7] !== "" && m[7] !== null && m[8] !== "" && m[8] !== null;
+    if (hasResult) return true;
+    const kickoffDt = new Date(`${today}T${String(m[2])}:00`);
+    return !isNaN(kickoffDt) && now >= kickoffDt.getTime() + 90 * 60 * 1000;
+  };
+
+  // Show only the first 2 non-finished matches
+  const visible = todayMatches.filter(x => !isFinished(x)).slice(0, 2);
+
+  if (!visible.length) {
+    container.innerHTML = "";
+    return;
+  }
+
+  const spanAll = visible.length === 1;
+  let html = `<div class="today-section"><h3>Heutige Spiele</h3><div class="today-matches-grid">`;
+
+  for (const { m, i: matchIdx } of visible) {
     const home = teamDE(String(m[5]));
     const away = teamDE(String(m[6]));
     const homeScore = m[7];
@@ -336,8 +352,9 @@ async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
     const kickoffDt = new Date(`${today}T${String(m[2])}:00`);
     const isLive = !isNaN(kickoffDt) && now >= kickoffDt.getTime() && now < kickoffDt.getTime() + 90 * 60 * 1000;
     const liveBadge = isLive ? ` <span class="live-badge">● LIVE</span>` : "";
+    const spanStyle = spanAll ? ` style="grid-column: 1 / -1"` : "";
 
-    html += `<div class="today-match-card">
+    html += `<div class="today-match-card"${spanStyle}>
       <div class="today-match-header">
         <span class="today-match-teams">${escHtml(home)} <span class="vs">vs</span> ${escHtml(away)}${liveBadge}</span>
         <span class="today-match-result ${hasResult ? "final" : "pending"}">${escHtml(resultStr)}</span>
