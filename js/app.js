@@ -826,13 +826,16 @@ async function renderPlayerDetail() {
     const matchTotal   = lbRow ? lbRow[3] : 0;
     const specialTotal = lbRow ? lbRow[4] : 0;
 
-    // Count exact / outcome / miss from match points columns
-    const groupMatchCount = matchRows.filter(m => m[4] === "Group Stage").length;
+    // Count exact / outcome / miss — only for matches that have a result
+    const groupMatches = matchRows.filter(m => m[4] === "Group Stage");
+    const groupMatchCount = groupMatches.length;
+    const hasResult = groupMatches.map(m => m[7] !== "" && m[7] !== null && m[8] !== "" && m[8] !== null);
     const countStats = row => {
       let e = 0, o = 0, ms = 0;
-      for (let i = 1; i <= groupMatchCount; i++) {
-        const v = parseInt(String(row?.[i] ?? ""), 10);
-        if (v === 3) e++; else if (v === 1) o++; else if (v === 0) ms++;
+      for (let i = 0; i < groupMatchCount; i++) {
+        if (!hasResult[i]) continue;
+        const v = parseInt(String(row?.[i + 1] ?? ""), 10);
+        if (v === 3) e++; else if (v === 1) o++; else ms++;
       }
       return { exact: e, outcome: o, miss: ms, played: e + o + ms };
     };
