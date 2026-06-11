@@ -351,10 +351,12 @@ async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
         const tipRow = tipsMap[String(player)];
         const tipStr = tipRow ? String(tipRow[ptCol] ?? "") : "";
         const ptLabel = !hasResult ? "" : isNaN(pts) ? "–" : `${pts} Pkt`;
-        const label = tipStr && ptLabel ? `${escHtml(tipStr)} · ${ptLabel}` : tipStr ? escHtml(tipStr) : ptLabel || "–";
+        const label = tipStr && ptLabel
+          ? `${escHtml(tipStr)} · <span class="${ptClass}">${ptLabel}</span>`
+          : tipStr ? escHtml(tipStr) : `<span class="${ptClass}">${ptLabel || "–"}</span>`;
         html += `<tr>
           <td class="today-tip-player">${escHtml(String(player))}</td>
-          <td class="today-tip-pts ${ptClass}">${label}</td>
+          <td class="today-tip-pts">${label}</td>
         </tr>`;
       });
       html += `</tbody></table>`;
@@ -627,10 +629,12 @@ async function renderResults() {
             const ptLabel = !hasResult ? "–" : isNaN(pts) ? "–" : `${pts} Pkt`;
             const tipRow = tipsMap[String(player)];
             const tipStr = (hasTips && tipRow) ? String(tipRow[ptCol] ?? "") : "";
-            const tipLabel = tipStr && hasResult ? `${escHtml(tipStr)} · ${ptLabel}` : tipStr ? escHtml(tipStr) : ptLabel;
+            const tipLabel = tipStr && hasResult
+              ? `${escHtml(tipStr)} · <span class="${ptClass}">${ptLabel}</span>`
+              : tipStr ? escHtml(tipStr) : `<span class="${ptClass}">${ptLabel}</span>`;
             html += `<tr>
               <td class="tip-player"><a class="player-link" href="player.html?player=${encodeURIComponent(String(player))}">${escHtml(String(player))}</a></td>
-              <td class="tip-pts ${ptClass}">${tipLabel}</td>
+              <td class="tip-pts">${tipLabel}</td>
             </tr>`;
           });
           html += `</tbody></table>`;
