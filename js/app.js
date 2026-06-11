@@ -252,20 +252,7 @@ function renderUpcoming(matches, container) {
   const now = Date.now();
 
   if (todayMatches.length > 0) {
-    let html = `<div class="upcoming-section"><h3>Heutige Spiele</h3><div class="upcoming-list">`;
-    for (const m of todayMatches) {
-      const home = teamDE(String(m[5]));
-      const away = teamDE(String(m[6]));
-      const time = String(m[2]);
-      const hasResult = m[7] !== "" && m[8] !== "";
-      const resultStr = hasResult ? `${m[7]} – ${m[8]}` : time + " Uhr";
-      html += `<div class="upcoming-match">
-        <span class="upcoming-teams">${escHtml(home)} <span class="vs">vs</span> ${escHtml(away)}</span>
-        <span class="upcoming-time ${hasResult ? 'final' : ''}">${escHtml(resultStr)}</span>
-      </div>`;
-    }
-    html += `</div></div>`;
-    container.innerHTML = html;
+    container.innerHTML = "";
     return;
   }
 
