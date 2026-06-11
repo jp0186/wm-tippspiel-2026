@@ -596,7 +596,7 @@ async function renderResults() {
     for (const [groupName, items] of Object.entries(groups)) {
       if (items[0].match[4] !== "Group Stage") continue;
 
-      html += `<section class="group-section"><h2>Gruppe ${escHtml(groupName)}</h2>`;
+      html += `<section class="group-section"><h2>Gruppe ${escHtml(groupName)}</h2><div class="group-matches">`;
 
       items.forEach(({ match, matchIdx }) => {
         const date = new Date(match[1]).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -639,7 +639,7 @@ async function renderResults() {
         html += `</div>`;
       });
 
-      html += `</section>`;
+      html += `</div></section>`;
     }
 
     container.innerHTML = html || "<p class='empty'>Keine Gruppenspiele gefunden.</p>";
