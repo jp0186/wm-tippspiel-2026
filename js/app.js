@@ -772,7 +772,8 @@ async function renderPlayers() {
   const statusEl  = document.getElementById("status");
   try {
     const { rows: lbRows } = await fetchSheet("Leaderboard");
-    const players = lbRows.map(r => ({ rank: r[0], name: String(r[1]), total: r[2] }));
+    const players = lbRows.map(r => ({ rank: r[0], name: String(r[1]), total: r[2] }))
+      .sort((a, b) => a.name.localeCompare(b.name, "de"));
 
     let html = `<div class="players-grid">`;
     players.forEach(p => {
