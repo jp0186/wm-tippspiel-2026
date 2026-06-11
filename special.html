@@ -75,10 +75,24 @@
     }
 
     /* ── Scrollable wrapper for wide table ── */
+    .sp-outer {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+    }
+
     .sp-scroll {
       overflow-x: auto;
-      border-radius: var(--radius);
+      overflow-y: visible;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
     }
+
+    .sp-scroll::-webkit-scrollbar { height: 6px; }
+    .sp-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sp-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
     .special-table {
       width: max-content;

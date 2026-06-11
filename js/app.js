@@ -725,7 +725,7 @@ async function renderSpecial() {
       </tr>`;
     }).join("");
 
-    const html = `<div class="sp-scroll">
+    const html = `<div class="sp-outer"><div class="sp-scroll">
       <table class="special-table">
         <thead>
           <tr>
@@ -746,7 +746,7 @@ async function renderSpecial() {
         </thead>
         <tbody>${rows}</tbody>
       </table>
-    </div>`;
+    </div></div>`;
 
     container.innerHTML = html;
     if (statusEl) statusEl.textContent = `Aktualisiert: ${new Date().toLocaleTimeString("de-DE")}`;
