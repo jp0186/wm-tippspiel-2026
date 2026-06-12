@@ -543,7 +543,7 @@ function renderProgressChart(matchRows, pointsRows, container) {
         y: {
           beginAtZero: true,
           title: { display: true, text: "Punkte", color: "#8892b0" },
-          ticks: { color: "#8892b0" },
+          ticks: { color: "#8892b0", stepSize: 1, callback: v => Number.isInteger(v) ? v : null },
           grid: { color: "#2a3555" },
         },
       },
