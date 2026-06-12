@@ -334,10 +334,10 @@ async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
     visible = [started, upcoming];         // finished game + next upcoming
   } else if (upcoming) {
     visible = todayMatches.filter(x => !hasStarted(x)).slice(0, 2); // no game started yet
-  } else if (started && isLive(started)) {
-    visible = [started];                   // last game of day is live
+  } else if (started) {
+    visible = [started];                   // live or finished — show until midnight
   } else {
-    container.innerHTML = "";             // all done for today
+    container.innerHTML = "";
     return;
   }
 
