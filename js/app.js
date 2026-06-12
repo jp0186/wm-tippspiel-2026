@@ -320,19 +320,24 @@ async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
   const players = pointsMatrix.map(r => r[0]);
   const now = Date.now();
 
-  // A match is finished when it has a result OR kickoff + 90 min has passed
-  const isFinished = ({ m }) => {
-    const hasResult = m[7] !== "" && m[7] !== null && m[8] !== "" && m[8] !== null;
-    if (hasResult) return true;
-    const kickoffDt = new Date(`${today}T${String(m[2])}:00`);
-    return !isNaN(kickoffDt) && now >= kickoffDt.getTime() + 90 * 60 * 1000;
-  };
+  const kickoffMs = ({ m }) => new Date(`${today}T${String(m[2])}:00`).getTime();
+  const isLive = x => { const k = kickoffMs(x); return now >= k && now < k + 90 * 60 * 1000; };
+  const hasStarted = x => now >= kickoffMs(x);
 
-  // Show only the first 2 non-finished matches
-  const visible = todayMatches.filter(x => !isFinished(x)).slice(0, 2);
+  // Most recently started match (live or finished)
+  const started = todayMatches.filter(hasStarted).at(-1);
+  // First not-yet-started match
+  const upcoming = todayMatches.find(x => !hasStarted(x));
 
-  if (!visible.length) {
-    container.innerHTML = "";
+  let visible;
+  if (started && upcoming) {
+    visible = [started, upcoming];         // finished game + next upcoming
+  } else if (upcoming) {
+    visible = todayMatches.filter(x => !hasStarted(x)).slice(0, 2); // no game started yet
+  } else if (started && isLive(started)) {
+    visible = [started];                   // last game of day is live
+  } else {
+    container.innerHTML = "";             // all done for today
     return;
   }
 
