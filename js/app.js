@@ -321,7 +321,7 @@ async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
   const now = Date.now();
 
   const kickoffMs = ({ m }) => new Date(`${today}T${String(m[2])}:00`).getTime();
-  const isLive = x => { const k = kickoffMs(x); return now >= k && now < k + 90 * 60 * 1000; };
+  const isLive = x => { const k = kickoffMs(x); return now >= k && now < k + 120 * 60 * 1000; };
   const hasStarted = x => now >= kickoffMs(x);
 
   // Most recently started match (live or finished)
@@ -355,7 +355,7 @@ async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
     const ptCol = gmCol >= 0 ? gmCol + 1 : -1;
 
     const kickoffDt = new Date(`${today}T${String(m[2])}:00`);
-    const isLive = !isNaN(kickoffDt) && now >= kickoffDt.getTime() && now < kickoffDt.getTime() + 90 * 60 * 1000;
+    const isLive = !isNaN(kickoffDt) && now >= kickoffDt.getTime() && now < kickoffDt.getTime() + 120 * 60 * 1000;
     const liveBadge = isLive ? ` <span class="live-badge">● LIVE</span>` : "";
     const spanStyle = spanAll ? ` style="grid-column: 1 / -1"` : "";
 
