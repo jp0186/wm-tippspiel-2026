@@ -763,6 +763,26 @@ async function renderSpecial() {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10);
 
+    // ── Goals per game stats ─────────────────────────────────────────────────
+    let totalGoals = 0, gamesPlayed = 0;
+    matchData.rows.forEach(m => {
+      if (String(m[4]) !== "Group Stage") return;
+      const hs = parseInt(m[7]), as = parseInt(m[8]);
+      if (!isNaN(hs) && hs >= 0 && !isNaN(as) && as >= 0) {
+        totalGoals += hs + as;
+        gamesPlayed++;
+      }
+    });
+    const avgGoals = gamesPlayed > 0 ? totalGoals / gamesPlayed : null;
+    const projection = avgGoals !== null ? Math.round(avgGoals * 72) : null;
+
+    const statsBox = gamesPlayed > 0 ? `<div class="sp-mini-table-box sp-stats-box">
+      <h3>Tore Vorrunde</h3>
+      <div class="sp-stat-row"><span class="sp-stat-label">Ø pro Spiel</span><span class="sp-stat-big">${avgGoals.toFixed(2)}</span></div>
+      <div class="sp-stat-row"><span class="sp-stat-label">Gesamt bisher</span><span class="sp-stat-num">${totalGoals} / ${gamesPlayed} Sp.</span></div>
+      <div class="sp-stat-row sp-stat-proj"><span class="sp-stat-label">Projektion (72)</span><span class="sp-stat-num">${projection}</span></div>
+    </div>` : "";
+
     // ── Top scorers (from Top_Scorers tab) ──────────────────────────────────
     const topScorers = scorersData.rows
       .filter(r => r[0] && parseInt(r[2]) > 0)
@@ -781,7 +801,8 @@ async function renderSpecial() {
       return `<div class="sp-mini-table-box"><h3>${title}</h3><table class="sp-mini-table"><tbody>${rowsHtml}</tbody></table></div>`;
     };
 
-    const sideTables = (topScorers.length || topTeams.length) ? `<div class="sp-side-tables">
+    const sideTables = (statsBox || topScorers.length || topTeams.length) ? `<div class="sp-side-tables">
+      ${statsBox}
       ${miniTable("Torschützenliste", topScorers, r => `${r[0]} (${teamDE(String(r[1]))})`, r => parseInt(r[2]))}
       ${miniTable("Torreichste Teams", topTeams, ([name]) => name, ([, g]) => g)}
     </div>` : "";
