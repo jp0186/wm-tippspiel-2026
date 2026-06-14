@@ -897,6 +897,157 @@ async function renderPlayers() {
   }
 }
 
+// ── Family tree (players.html) ────────────────────────────────────────────────
+
+async function renderFamilyTree() {
+  const container = document.getElementById("tree-container");
+  const statusEl  = document.getElementById("status");
+  try {
+    const [famResp, { rows: lbRows }] = await Promise.all([
+      fetch("family.json"),
+      fetchSheet("Leaderboard"),
+    ]);
+    if (!famResp.ok) throw new Error("family.json nicht gefunden");
+    const family = await famResp.json();
+
+    // name → total points from the live Leaderboard
+    const pts = {};
+    lbRows.forEach(r => { pts[String(r[1])] = r[2]; });
+
+    // Enrich player nodes with avatar + live points; mark them for click-through
+    family.forEach(n => {
+      n.data = n.data || {};
+      if (n.player) {
+        if (!n.data.avatar) n.data.avatar = playerImgSrc(n.player);
+        const t = pts[n.player];
+        n.data.points = (t !== undefined && t !== "") ? `${t} Pkt` : "";
+        n.data.player = n.player; // duplicate inside data so the click handler can read it
+      }
+    });
+
+    container.innerHTML = "";
+    drawFamilyGenogram(family, container);
+    if (statusEl) statusEl.textContent = `Aktualisiert: ${new Date().toLocaleTimeString("de-DE")}`;
+  } catch (e) {
+    container.innerHTML = `<p class="error">Fehler: ${escHtml(e.message)}</p>`;
+    console.error(e);
+  }
+}
+
+// Lay out the family as a genogram (couples joined by a hidden "union" node) using
+// dagre, then render avatar cards + connector lines into a zoom/pan-able SVG.
+function drawFamilyGenogram(family, container) {
+  const CW = 104, CH = 150, IMG_H = 122;   // card width / height / avatar height
+  const byId = {};
+  family.forEach(p => { byId[p.id] = p; p.rels = p.rels || {}; });
+
+  const g = new dagre.graphlib.Graph({ multigraph: true });
+  g.setGraph({ rankdir: "TB", nodesep: 26, ranksep: 34, marginx: 24, marginy: 24 });
+  g.setDefaultEdgeLabel(() => ({}));
+
+  family.forEach(p => g.setNode(p.id, { width: CW, height: CH }));
+
+  // Collect unions: one per unique parent-set (from children) and per childless couple.
+  const unions = {};
+  const keyOf = parents => parents.slice().sort().join("+");
+  family.forEach(p => {
+    const par = (p.rels.parents || []).filter(Boolean);
+    if (par.length) {
+      const k = keyOf(par);
+      (unions[k] || (unions[k] = { parents: par, children: [] })).children.push(p.id);
+    }
+  });
+  family.forEach(p => (p.rels.spouses || []).forEach(s => {
+    const k = keyOf([p.id, s]);
+    if (!unions[k]) unions[k] = { parents: [p.id, s], children: [] };
+  }));
+
+  let ui = 0;
+  Object.values(unions).forEach(u => {
+    const uid = "__u" + (ui++);
+    g.setNode(uid, { width: 1, height: 1, union: true });
+    u.parents.forEach(pid => byId[pid] && g.setEdge(pid, uid, { kind: "marriage" }, pid + uid));
+    u.children.forEach(cid => g.setEdge(uid, cid, { kind: "child" }, uid + cid));
+  });
+
+  dagre.layout(g);
+  const gi = g.graph();
+  const W = Math.max(gi.width, 200), H = Math.max(gi.height, 200);
+
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("class", "genogram-svg");
+  svg.setAttribute("width", "100%");
+  svg.setAttribute("height", "100%");
+  const root = document.createElementNS(NS, "g");
+  svg.appendChild(root);
+
+  // Connector lines (draw first so cards sit on top)
+  const edgesG = document.createElementNS(NS, "g");
+  root.appendChild(edgesG);
+  g.edges().forEach(e => {
+    const pts = g.edge(e).points;
+    if (!pts || !pts.length) return;
+    const d = pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+    const path = document.createElementNS(NS, "path");
+    path.setAttribute("d", d);
+    path.setAttribute("class", "geno-link");
+    edgesG.appendChild(path);
+  });
+
+  // Person cards
+  g.nodes().forEach(id => {
+    const node = g.node(id);
+    if (node.union) return;
+    const p = byId[id];
+    const x = node.x - CW / 2, y = node.y - CH / 2;
+    const isPlayer = !!p.player;
+    const name = (p.data && p.data["first name"]) || id;
+
+    const grp = document.createElementNS(NS, "g");
+    grp.setAttribute("transform", `translate(${x},${y})`);
+    grp.setAttribute("class", "geno-card" + (isPlayer ? " geno-player" : " geno-relative"));
+
+    const fo = document.createElementNS(NS, "foreignObject");
+    fo.setAttribute("width", CW);
+    fo.setAttribute("height", CH);
+    const avatar = isPlayer ? `<img class="geno-img" src="${escHtml(playerImgSrc(p.player))}" alt="" onerror="this.style.visibility='hidden'">`
+                            : `<div class="geno-silhouette">${svgPersonIcon()}</div>`;
+    const ptsTxt = isPlayer && p.data && p.data.points ? `<div class="geno-pts">${escHtml(p.data.points)}</div>` : "";
+    fo.innerHTML =
+      `<div xmlns="http://www.w3.org/1999/xhtml" class="geno-card-inner" style="--img-h:${IMG_H}px">
+         <div class="geno-img-wrap">${avatar}</div>
+         <div class="geno-name">${escHtml(name)}</div>${ptsTxt}
+       </div>`;
+    grp.appendChild(fo);
+
+    if (isPlayer) {
+      grp.style.cursor = "pointer";
+      grp.addEventListener("click", () => {
+        window.location = "player.html?player=" + encodeURIComponent(p.player);
+      });
+    }
+    root.appendChild(grp);
+  });
+
+  container.appendChild(svg);
+
+  // Zoom / pan, fitted to the container
+  const zoom = d3.zoom().scaleExtent([0.2, 2.5]).on("zoom", ev => {
+    root.setAttribute("transform", ev.transform.toString());
+  });
+  const sel = d3.select(svg);
+  sel.call(zoom);
+  const cw = container.clientWidth || W, ch = container.clientHeight || H;
+  const scale = Math.min(cw / W, ch / H, 1.4) * 0.95;
+  const tx = (cw - W * scale) / 2, ty = (ch - H * scale) / 2;
+  sel.call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+}
+
+function svgPersonIcon() {
+  return `<svg viewBox="0 0 512 512" aria-hidden="true"><path fill="currentColor" d="M256 288c79.5 0 144-64.5 144-144S335.5 0 256 0 112 64.5 112 144s64.5 144 144 144zm0 48c-96.5 0-288 48.4-288 144v32h576v-32c0-95.6-191.5-144-288-144z"/></svg>`;
+}
+
 // ── Player detail page (player.html) ─────────────────────────────────────────
 
 async function renderPlayerDetail() {
