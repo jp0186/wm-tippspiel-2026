@@ -97,6 +97,36 @@
       margin-bottom: 0.75rem;
     }
 
+    .today-results-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .today-result-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.5rem 1rem;
+    }
+
+    .today-result-teams { font-size: 0.9rem; font-weight: 600; }
+
+    .today-result-score {
+      font-size: 1rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .today-result-score.final { color: var(--green); }
+    .today-result-score.pending { color: var(--text-muted); }
+
     .today-matches-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
     @media (max-width: 600px) { .today-matches-grid { grid-template-columns: 1fr; } }
 
@@ -381,7 +411,7 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-  <script src="js/app.js?v=5"></script>
+  <script src="js/app.js?v=6"></script>
   <script>
     autoRefresh(renderLeaderboard);
   </script>

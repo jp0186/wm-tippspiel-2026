@@ -341,8 +341,29 @@ async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
     return;
   }
 
+  // Earlier games today that the window has rolled off — show result only, no tips
+  const visibleIdx = new Set(visible.map(x => x.i));
+  const rolledOff = todayMatches.filter(x => hasStarted(x) && !visibleIdx.has(x.i));
+
   const spanAll = visible.length === 1;
-  let html = `<div class="today-section"><h3>Heutige Spiele</h3><div class="today-matches-grid">`;
+  let html = `<div class="today-section"><h3>Heutige Spiele</h3>`;
+
+  if (rolledOff.length) {
+    html += `<div class="today-results-list">`;
+    for (const { m } of rolledOff) {
+      const home = teamDE(String(m[5]));
+      const away = teamDE(String(m[6]));
+      const hasResult = m[7] !== "" && m[8] !== "";
+      const resultStr = hasResult ? `${m[7]} – ${m[8]}` : String(m[2]) + " Uhr";
+      html += `<div class="today-result-row">
+        <span class="today-result-teams">${escHtml(home)} <span class="vs">vs</span> ${escHtml(away)}</span>
+        <span class="today-result-score ${hasResult ? "final" : "pending"}">${escHtml(resultStr)}</span>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+
+  html += `<div class="today-matches-grid">`;
 
   for (const { m, i: matchIdx } of visible) {
     const home = teamDE(String(m[5]));
