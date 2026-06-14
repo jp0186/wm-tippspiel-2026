@@ -903,12 +903,16 @@ async function renderFamilyTree() {
   const container = document.getElementById("tree-container");
   const statusEl  = document.getElementById("status");
   try {
-    const [famResp, { rows: lbRows }] = await Promise.all([
-      fetch("family.json"),
-      fetchSheet("Leaderboard"),
+    // The tree must render even if the Leaderboard (Google Sheets) is slow or
+    // blocked — points are a nice-to-have. Cap its wait so it never blocks.
+    const lbPromise = Promise.race([
+      fetchSheet("Leaderboard").catch(() => ({ rows: [] })),
+      new Promise(res => setTimeout(() => res({ rows: [] }), 4000)),
     ]);
+    const [famResp, lb] = await Promise.all([fetch("family.json?t=" + Date.now()), lbPromise]);
     if (!famResp.ok) throw new Error("family.json nicht gefunden");
     const family = await famResp.json();
+    const lbRows = lb.rows || [];
 
     // name → total points from the live Leaderboard
     const pts = {};

@@ -1,9 +1,12 @@
 [
-  { "id": "gp_h",       "data": { "gender": "F", "first name": "Urgroßeltern" },     "rels": { "children": ["birgit_p", "annegret_p"] } },
-  { "id": "birgit_p",   "data": { "gender": "F", "first name": "Birgits Mutter" },   "rels": { "parents": ["gp_h"], "children": ["birgit"] } },
+  { "id": "gp_h",       "data": { "gender": "F", "first name": "Urgroßeltern" },     "rels": { "children": ["annegret_p", "birgit_p"] } },
   { "id": "annegret_p", "data": { "gender": "F", "first name": "Annegrets Mutter" }, "rels": { "parents": ["gp_h"], "children": ["annegret"] } },
+  { "id": "birgit_p",   "data": { "gender": "F", "first name": "Birgits Mutter" },   "rels": { "parents": ["gp_h"], "children": ["birgit"] } },
 
-  { "id": "birgit", "data": { "gender": "F", "first name": "Birgit" }, "rels": { "parents": ["birgit_p"], "children": ["henning", "dorthe"] } },
+  { "id": "birgit", "data": { "gender": "F", "first name": "Birgit" }, "rels": { "parents": ["birgit_p"], "children": ["dorthe", "henning"] } },
+
+  { "id": "dorthe", "player": "Dörthe", "data": { "gender": "F", "first name": "Dörthe" }, "rels": { "parents": ["birgit"], "spouses": ["martin"] } },
+  { "id": "martin", "player": "Martin", "data": { "gender": "M", "first name": "Martin" }, "rels": { "spouses": ["dorthe"] } },
 
   { "id": "henning", "player": "Henning", "data": { "gender": "M", "first name": "Henning" }, "rels": { "parents": ["birgit"], "spouses": ["katrin"], "children": ["maxi", "niklas", "jonas"] } },
   { "id": "katrin",  "player": "Katrin",  "data": { "gender": "F", "first name": "Katrin"  }, "rels": { "parents": ["andreas", "madeleine"], "spouses": ["henning"], "children": ["maxi", "niklas", "jonas"] } },
@@ -11,19 +14,16 @@
   { "id": "niklas",  "player": "Niklas",  "data": { "gender": "M", "first name": "Niklas"  }, "rels": { "parents": ["henning", "katrin"] } },
   { "id": "jonas",   "player": "Jonas",   "data": { "gender": "M", "first name": "Jonas"   }, "rels": { "parents": ["henning", "katrin"] } },
 
-  { "id": "dorthe", "player": "Dorthe", "data": { "gender": "F", "first name": "Dorthe" }, "rels": { "parents": ["birgit"], "spouses": ["martin"] } },
-  { "id": "martin", "player": "Martin", "data": { "gender": "M", "first name": "Martin" }, "rels": { "spouses": ["dorthe"] } },
-
   { "id": "annegret",  "player": "Annegret",  "data": { "gender": "F", "first name": "Annegret" }, "rels": { "parents": ["annegret_p"], "children": ["sebastian"] } },
   { "id": "sebastian", "player": "Sebastian", "data": { "gender": "M", "first name": "Sebastian" }, "rels": { "parents": ["annegret"] } },
 
   { "id": "mp",        "data": { "gender": "F", "first name": "Madeleines Eltern" }, "rels": { "children": ["madeleine", "jeanne"] } },
+  { "id": "andreas", "player": "Andreas", "data": { "gender": "M", "first name": "Andreas" }, "rels": { "spouses": ["madeleine"], "children": ["katrin", "monique"] } },
   { "id": "madeleine", "data": { "gender": "F", "first name": "Madeleine" },          "rels": { "parents": ["mp"], "spouses": ["andreas"], "children": ["katrin", "monique"] } },
   { "id": "jeanne",  "player": "Jeanne",  "data": { "gender": "F", "first name": "Jeanne"  }, "rels": { "parents": ["mp"] } },
-  { "id": "andreas", "player": "Andreas", "data": { "gender": "M", "first name": "Andreas" }, "rels": { "spouses": ["madeleine"], "children": ["katrin", "monique"] } },
 
   { "id": "monique", "data": { "gender": "F", "first name": "Monique" }, "rels": { "parents": ["andreas", "madeleine"], "spouses": ["tom"], "children": ["noe", "aiden"] } },
   { "id": "tom",   "player": "Tom",   "data": { "gender": "M", "first name": "Tom"   }, "rels": { "spouses": ["monique"], "children": ["noe", "aiden"] } },
-  { "id": "noe",   "player": "Noe",   "data": { "gender": "M", "first name": "Noé"   }, "rels": { "parents": ["tom", "monique"] } },
+  { "id": "noe",   "player": "Noé",   "data": { "gender": "M", "first name": "Noé"   }, "rels": { "parents": ["tom", "monique"] } },
   { "id": "aiden", "player": "Aiden", "data": { "gender": "M", "first name": "Aiden" }, "rels": { "parents": ["tom", "monique"] } }
 ]
