@@ -326,52 +326,70 @@ async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
     [lastStarted, nextUpcoming].filter(Boolean).map(x => x.i)
   );
 
-  let html = `<div class="today-section"><h3>Heutige Spiele</h3><div class="today-matches-list">`;
+  const visibleMatches = todayMatches.filter(x => visibleSet.has(x.i));
+  const otherMatches   = todayMatches.filter(x => !visibleSet.has(x.i));
 
-  for (const { m, i: matchIdx } of todayMatches) {
+  const buildCard = ({ m, i: matchIdx }, opts = {}) => {
+    const { collapsible = false, collapsed = false } = opts;
     const entry = { m, i: matchIdx };
     const home = teamDE(String(m[5]));
     const away = teamDE(String(m[6]));
-    const homeScore = m[7];
-    const awayScore = m[8];
+    const homeScore = m[7], awayScore = m[8];
     const hasResult = homeScore !== "" && awayScore !== "";
     const live = isLive(entry);
-
     const resultStr = hasResult ? `${homeScore} – ${awayScore}` : String(m[2]) + " Uhr";
     const liveBadge = live ? ` <span class="live-badge">● LIVE</span>` : "";
-    // Only the visible window is expanded by default; everything else collapsed
-    const collapsed = visibleSet.has(matchIdx) ? "" : " tm-collapsed";
-
     const gmCol = groupMatchIndices.indexOf(matchIdx);
     const ptCol = gmCol >= 0 ? gmCol + 1 : -1;
+    const collapseClass = collapsed ? " tm-collapsed" : "";
+    const headerToggle = collapsible ? ` onclick="this.closest('.today-match-card').classList.toggle('tm-collapsed')"` : "";
+    const chevron = collapsible ? `<span class="tm-chevron">▾</span>` : "";
+    const headerCursor = collapsible ? "" : " style=\"cursor:default\"";
 
-    html += `<div class="today-match-card${collapsed}">
-      <div class="today-match-header" onclick="this.closest('.today-match-card').classList.toggle('tm-collapsed')">
+    let card = `<div class="today-match-card${collapseClass}">
+      <div class="today-match-header"${headerToggle}${headerCursor}>
         <span class="today-match-teams">${escHtml(home)} <span class="vs">vs</span> ${escHtml(away)}${liveBadge}</span>
         <span class="today-match-result ${hasResult ? "final" : "pending"}">${escHtml(resultStr)}</span>
-        <span class="tm-chevron">▾</span>
+        ${chevron}
       </div>`;
-
     if (players.length && ptCol >= 0) {
-      html += `<table class="today-tips-table"><tbody>`;
+      card += `<table class="today-tips-table"><tbody>`;
       players.forEach((player, pi) => {
         const pts = parseInt(String(pointsMatrix[pi]?.[ptCol] ?? ""), 10);
         const ptClass = pts === 3 ? "exact" : pts === 1 ? "outcome" : hasResult ? "miss" : "no-result";
         const tipRow = tipsMap[String(player)];
         const tipStr = tipRow ? String(tipRow[ptCol] ?? "") : "";
         const ptLabel = !hasResult ? "" : isNaN(pts) ? "–" : `${pts} Pkt`;
-        html += `<tr>
+        card += `<tr>
           <td class="today-tip-player">${escHtml(String(player))}</td>
           <td class="today-tip-str">${escHtml(tipStr)}</td>
           <td class="today-tip-pts"><span class="${ptClass}">${ptLabel || "–"}</span></td>
         </tr>`;
       });
-      html += `</tbody></table>`;
+      card += `</tbody></table>`;
+    }
+    card += `</div>`;
+    return card;
+  };
+
+  let html = `<div class="today-section"><h3>Heutige Spiele</h3>`;
+
+  if (visibleMatches.length) {
+    html += `<div class="today-matches-grid">`;
+    for (const x of visibleMatches) html += buildCard(x, { collapsible: false });
+    html += `</div>`;
+  }
+
+  if (otherMatches.length) {
+    html += `<div class="today-matches-list">`;
+    for (const x of otherMatches) {
+      const isEarlier = x.i < (lastStarted?.i ?? Infinity);
+      html += buildCard(x, { collapsible: true, collapsed: true });
     }
     html += `</div>`;
   }
 
-  html += `</div></div>`;
+  html += `</div>`;
   container.innerHTML = html;
 }
 
