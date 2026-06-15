@@ -860,7 +860,7 @@ async function renderSpecial() {
         const v = valFn(item);
         if (v !== prevVal) { rank = count + 1; prevVal = v; }
         count++;
-        return `<tr><td class="sp-mini-rank">${rank}</td><td>${escHtml(nameFn(item))}</td><td class="sp-mini-val">${v}</td></tr>`;
+        return `<tr${rank === 1 ? ' class="sp-mini-top"' : ""}><td class="sp-mini-rank">${rank}</td><td>${escHtml(nameFn(item))}</td><td class="sp-mini-val">${v}</td></tr>`;
       }).join("");
       return `<div class="sp-mini-table-box"><h3>${title}</h3><table class="sp-mini-table"><tbody>${rowsHtml}</tbody></table></div>`;
     };
