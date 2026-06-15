@@ -1090,13 +1090,14 @@ async function renderPlayerDetail() {
   }
 
   try {
-    const [{ rows: lbRows }, { rows: ptsRows }, { headers: ptsHeaders }, spPtsData, spTipsData, { rows: matchRows }] = await Promise.all([
+    const [{ rows: lbRows }, { rows: ptsRows }, { headers: ptsHeaders }, spPtsData, spTipsData, { rows: matchRows }, { rows: tipsRows }] = await Promise.all([
       fetchSheet("Leaderboard"),
       fetchSheet("Points"),
       fetchSheet("Points"),
       fetchSheet("Special_Points").catch(() => ({ rows: [] })),
       fetchSheet("Special_Tips").catch(() => ({ rows: [] })),
       fetchSheet("Matches"),
+      fetchSheet("Tips").catch(() => ({ rows: [] })),
     ]);
 
     // Find this player's data
@@ -1186,6 +1187,46 @@ async function renderPlayerDetail() {
         html += `<tr><td class="pd-sp-label">${escHtml(label)}</td><td class="pd-sp-val">${escHtml(tip)} ${ptLabel}</td></tr>`;
       });
       html += `</tbody></table>`;
+    }
+
+    // ── Scored match tips box ────────────────────────────────────────────────
+    const myTipsRow = tipsRows.find(r => String(r[0]) === playerName);
+    const groupMatchIndices2 = [];
+    matchRows.forEach((m, i) => { if (m[4] === "Group Stage") groupMatchIndices2.push(i); });
+
+    const scoredTips = [];
+    groupMatchIndices2.forEach((matchIdx, offset) => {
+      const ptCol = offset + 1;
+      const pts = parseInt(String(ptsRow?.[ptCol] ?? ""), 10);
+      if (isNaN(pts) || pts <= 0) return;
+      const m = matchRows[matchIdx];
+      if (m[7] === "" || m[8] === "") return;
+      scoredTips.push({
+        date: String(m[1]).slice(0, 10),
+        home: teamDE(String(m[5])),
+        away: teamDE(String(m[6])),
+        homeScore: m[7], awayScore: m[8],
+        tip: myTipsRow ? String(myTipsRow[ptCol] ?? "") : "",
+        pts,
+      });
+    });
+    scoredTips.sort((a, b) => b.date.localeCompare(a.date));
+
+    if (scoredTips.length) {
+      html += `<h2 class="pd-section-title" style="margin-top:1.75rem">Gewertete Tipps</h2>
+        <div class="pd-scored-box">`;
+      scoredTips.forEach(t => {
+        const d = new Date(t.date).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+        const ptClass = t.pts === 3 ? "exact" : "outcome";
+        html += `<div class="pd-scored-row">
+          <span class="pd-scored-date">${escHtml(d)}</span>
+          <span class="pd-scored-match">${escHtml(t.home)} <span class="vs">vs</span> ${escHtml(t.away)}</span>
+          <span class="pd-scored-result">${escHtml(String(t.homeScore))}:${escHtml(String(t.awayScore))}</span>
+          <span class="pd-scored-tip">${escHtml(t.tip)}</span>
+          <span class="pd-scored-pts ${ptClass}">${t.pts} Pkt</span>
+        </div>`;
+      });
+      html += `</div>`;
     }
 
     container.innerHTML = html;
