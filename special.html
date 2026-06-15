@@ -192,10 +192,15 @@
 
     .special-table tbody tr:hover td.sp-player { background: var(--surface2); }
 
-    /* Phase column dividers */
-    .special-table td:nth-child(5),
-    .special-table td:nth-child(6),
-    .special-table td:nth-child(8) { border-left: 2px solid var(--border); }
+    /* Phase sections */
+    .sp-phase-section { margin-bottom: 2rem; }
+    .sp-phase-heading {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--accent);
+      margin-bottom: 0.6rem;
+    }
 
     .sp-cell { font-variant-numeric: tabular-nums; }
     .sp-cell.scored { color: var(--green); font-weight: 600; }
@@ -265,7 +270,7 @@
     </div>
   </main>
 
-  <script src="js/app.js?v=3"></script>
+  <script src="js/app.js?v=11"></script>
   <script>
     autoRefresh(renderSpecial);
   </script>

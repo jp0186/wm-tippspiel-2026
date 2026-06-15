@@ -763,24 +763,55 @@ async function renderSpecial() {
       return `<td class="sp-cell ${scored ? "scored" : tip ? "miss" : "empty"}">${escHtml(tip || "–")}${scored ? `<em>(${n})</em>` : ""}</td>`;
     };
 
-    const rows = players.map(p => {
-      const sfPicks = p.sf_tips.filter(t => t).join(", ") || "–";
-      const sfN = parseInt(p.sf_pts, 10);
-      const sfScored = !isNaN(sfN) && sfN > 0;
-      const tggGuess = p.tgg_guess !== "" ? String(p.tgg_guess) : "–";
-      const tggN = parseInt(p.tgg_pts, 10);
-      const tggScored = !isNaN(tggN) && tggN > 0;
-      return `<tr>
+    const sumPts = (...vals) => vals.reduce((s, v) => { const n = parseInt(v, 10); return s + (isNaN(n) ? 0 : n); }, 0);
+    const ptsCell = n => `<td class="sp-cell total">${n}</td>`;
+
+    const buildTable = (headers, rowsFn) => {
+      const ths = headers.map(([label, sub]) =>
+        `<th>${escHtml(label)}${sub ? `<small>${escHtml(sub)}</small>` : ""}</th>`).join("");
+      const rows = players.map(rowsFn).join("");
+      return `<div class="sp-outer"><div class="sp-scroll"><table class="special-table">
+        <thead><tr><th class="sp-player-hdr">Spieler</th>${ths}<th class="sp-total-hdr">Pkt</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div></div>`;
+    };
+
+    const gruppenTable = buildTable(
+      [["Mannschaft", "meiste Tore 5P"], ["Spieler", "meiste Tore 5P"], ["Gesamttore", "10/5P"]],
+      p => {
+        const tggN = parseInt(p.tgg_pts, 10);
+        const tggGuess = p.tgg_guess !== "" ? String(p.tgg_guess) : "–";
+        return `<tr>
+          <td class="sp-player">${escHtml(p.name)}</td>
+          ${cell(p.tmgg_tip, p.tmgg_pts)}
+          ${cell(p.pmgg_tip, p.pmgg_pts)}
+          <td class="sp-cell ${!isNaN(tggN) && tggN > 0 ? "scored" : "miss"}">${escHtml(tggGuess)}${!isNaN(tggN) && tggN > 0 ? `<em>(${tggN})</em>` : ""}</td>
+          ${ptsCell(sumPts(p.tmgg_pts, p.pmgg_pts, p.tgg_pts))}
+        </tr>`;
+      }
+    );
+
+    const halbTable = buildTable(
+      [["Halbfinalist 1", "5P"], ["Halbfinalist 2", "5P"], ["Halbfinalist 3", "5P"], ["Halbfinalist 4", "5P"]],
+      p => {
+        const sfN = parseInt(p.sf_pts, 10);
+        return `<tr>
+          <td class="sp-player">${escHtml(p.name)}</td>
+          ${p.sf_tips.map(t => cell(t, "")).join("")}
+          ${ptsCell(isNaN(sfN) ? 0 : sfN)}
+        </tr>`;
+      }
+    );
+
+    const finaleTable = buildTable(
+      [["Weltmeister", "15P"], ["Torschützenkönig", "10P"]],
+      p => `<tr>
         <td class="sp-player">${escHtml(p.name)}</td>
-        ${cell(p.tmgg_tip, p.tmgg_pts)}
-        ${cell(p.pmgg_tip, p.pmgg_pts)}
-        <td class="sp-cell ${tggScored ? "scored" : "miss"}">${escHtml(tggGuess)}${tggScored ? `<em>(${tggN})</em>` : ""}</td>
-        <td class="sp-cell ${sfScored ? "scored" : "miss"}">${escHtml(sfPicks)}${sfScored ? `<em>(${sfN})</em>` : ""}</td>
         ${cell(p.tw_tip, p.tw_pts)}
         ${cell(p.ts_tip, p.ts_pts)}
-        <td class="sp-cell total">${p.total !== "" ? p.total : 0}</td>
-      </tr>`;
-    }).join("");
+        ${ptsCell(sumPts(p.tw_pts, p.ts_pts))}
+      </tr>`
+    );
 
     // ── Team goals (computed from Matches tab) ──────────────────────────────
     const teamGoals = {};
@@ -840,28 +871,10 @@ async function renderSpecial() {
       ${miniTable("Torreichste Teams", topTeams, ([name]) => name, ([, g]) => g)}
     </div>` : "";
 
-    const html = `${sideTables}<div class="sp-outer"><div class="sp-scroll">
-      <table class="special-table">
-        <thead>
-          <tr>
-            <th rowspan="2" class="sp-player-hdr">Spieler</th>
-            <th colspan="3" class="sp-phase">Gruppenphase</th>
-            <th colspan="1" class="sp-phase">Halbfinale</th>
-            <th colspan="2" class="sp-phase">Finale</th>
-            <th rowspan="2" class="sp-phase sp-total-hdr">Gesamt</th>
-          </tr>
-          <tr>
-            <th>Team<br><small>Tore 5P</small></th>
-            <th>Spieler<br><small>Tore 5P</small></th>
-            <th>Gesamttore<br><small>10/5P</small></th>
-            <th>Halbfinalisten<br><small>je 5P</small></th>
-            <th>Weltmeister<br><small>15P</small></th>
-            <th>Torschütze<br><small>10P</small></th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div></div>`;
+    const html = `${sideTables}
+      <div class="sp-phase-section"><h3 class="sp-phase-heading">Gruppenphase</h3>${gruppenTable}</div>
+      <div class="sp-phase-section"><h3 class="sp-phase-heading">Halbfinale</h3>${halbTable}</div>
+      <div class="sp-phase-section"><h3 class="sp-phase-heading">Finale</h3>${finaleTable}</div>`;
 
     container.innerHTML = html;
     if (statusEl) statusEl.textContent = `Aktualisiert: ${new Date().toLocaleTimeString("de-DE")}`;
