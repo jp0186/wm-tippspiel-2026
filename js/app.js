@@ -374,18 +374,25 @@ async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
 
   let html = `<div class="today-section"><h3>Heutige Spiele</h3>`;
 
+  const minVisible = Math.min(...[...visibleSet]);
+  const earlierMatches = otherMatches.filter(x => x.i < minVisible);
+  const laterMatches   = otherMatches.filter(x => x.i > Math.max(...[...visibleSet]));
+
+  if (earlierMatches.length) {
+    html += `<div class="today-matches-list">`;
+    for (const x of earlierMatches) html += buildCard(x, { collapsible: true, collapsed: true });
+    html += `</div>`;
+  }
+
   if (visibleMatches.length) {
     html += `<div class="today-matches-grid">`;
     for (const x of visibleMatches) html += buildCard(x, { collapsible: false });
     html += `</div>`;
   }
 
-  if (otherMatches.length) {
+  if (laterMatches.length) {
     html += `<div class="today-matches-list">`;
-    for (const x of otherMatches) {
-      const isEarlier = x.i < (lastStarted?.i ?? Infinity);
-      html += buildCard(x, { collapsible: true, collapsed: true });
-    }
+    for (const x of laterMatches) html += buildCard(x, { collapsible: true, collapsed: true });
     html += `</div>`;
   }
 
