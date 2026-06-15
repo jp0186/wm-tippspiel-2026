@@ -625,12 +625,33 @@ async function renderResults() {
       groups[group].push({ match: m, matchIdx: i });
     });
 
-    let html = "";
+    // Build group-nav data: group → unique teams in order of appearance
+    const groupTeams = {};
+    matches.forEach(m => {
+      if (m[4] !== "Group Stage") return;
+      const g = m[3] || "?";
+      if (!groupTeams[g]) groupTeams[g] = [];
+      [teamDE(String(m[5])), teamDE(String(m[6]))].forEach(t => {
+        if (!groupTeams[g].includes(t)) groupTeams[g].push(t);
+      });
+    });
+    const groupKeys = Object.keys(groupTeams).sort();
+
+    let navHtml = `<div class="group-nav">`;
+    groupKeys.forEach(g => {
+      navHtml += `<a class="group-nav-box" href="#group-${encodeURIComponent(g)}">
+        <div class="group-nav-letter">Gruppe ${escHtml(g)}</div>
+        <div class="group-nav-teams">${groupTeams[g].map(t => `<div class="group-nav-team">${escHtml(t)}</div>`).join("")}</div>
+      </a>`;
+    });
+    navHtml += `</div>`;
+
+    let html = navHtml;
 
     for (const [groupName, items] of Object.entries(groups)) {
       if (items[0].match[4] !== "Group Stage") continue;
 
-      html += `<section class="group-section"><h2>Gruppe ${escHtml(groupName)}</h2>`;
+      html += `<section class="group-section" id="group-${encodeURIComponent(groupName)}"><h2>Gruppe ${escHtml(groupName)}</h2>`;
 
       items.forEach(({ match, matchIdx }) => {
         const date = new Date(match[1]).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -642,15 +663,15 @@ async function renderResults() {
         const hasResult = homeScore !== "" && awayScore !== "";
         const resultStr = hasResult ? `${homeScore} – ${awayScore}` : "—";
 
-        // Column index in Points/Tips tabs for this match
         const gmCol = groupMatchIndices.indexOf(matchIdx);
         const ptCol = gmCol >= 0 ? gmCol + 1 : -1;
 
-        html += `<div class="match-card">
-          <div class="match-header">
+        html += `<div class="match-card mc-collapsed">
+          <div class="match-header" onclick="this.closest('.match-card').classList.toggle('mc-collapsed')">
             <span class="match-date">${escHtml(date)} ${escHtml(String(time))}</span>
             <span class="match-teams">${escHtml(home)} <span class="vs">vs</span> ${escHtml(away)}</span>
             <span class="match-result ${hasResult ? "final" : "pending"}">${resultStr}</span>
+            <span class="mc-chevron">▾</span>
           </div>`;
 
         if (players.length && ptCol >= 0) {
