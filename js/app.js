@@ -308,82 +308,42 @@ async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
     .map((m, i) => ({ m, i }))
     .filter(({ m }) => String(m[1]).slice(0, 10) === today && m[4] === "Group Stage");
 
-  if (!todayMatches.length) {
-    container.innerHTML = "";
-    return;
-  }
+  if (!todayMatches.length) { container.innerHTML = ""; return; }
 
-  // Build ordered list of group-match indices for Points/Tips column mapping
   const groupMatchIndices = [];
   matchRows.forEach((m, i) => { if (m[4] === "Group Stage") groupMatchIndices.push(i); });
 
   const players = pointsMatrix.map(r => r[0]);
   const now = Date.now();
-
-  const kickoffMs = ({ m }) => new Date(`${today}T${String(m[2])}:00`).getTime();
-  const isLive = x => { const k = kickoffMs(x); return now >= k && now < k + 120 * 60 * 1000; };
+  const kickoffMs = x => new Date(`${today}T${String(x.m[2])}:00`).getTime();
   const hasStarted = x => now >= kickoffMs(x);
+  const isLive = x => { const k = kickoffMs(x); return now >= k && now < k + 120 * 60 * 1000; };
 
-  // Most recently started match (live or finished)
-  const started = todayMatches.filter(hasStarted).at(-1);
-  // First not-yet-started match
-  const upcoming = todayMatches.find(x => !hasStarted(x));
+  let html = `<div class="today-section"><h3>Heutige Spiele</h3><div class="today-matches-list">`;
 
-  let visible;
-  if (started && upcoming) {
-    visible = [started, upcoming];         // finished game + next upcoming
-  } else if (upcoming) {
-    visible = todayMatches.filter(x => !hasStarted(x)).slice(0, 2); // no game started yet
-  } else if (started) {
-    visible = [started];                   // live or finished — show until midnight
-  } else {
-    container.innerHTML = "";
-    return;
-  }
-
-  // Earlier games today that the window has rolled off — show result only, no tips
-  const visibleIdx = new Set(visible.map(x => x.i));
-  const rolledOff = todayMatches.filter(x => hasStarted(x) && !visibleIdx.has(x.i));
-
-  const spanAll = visible.length === 1;
-  let html = `<div class="today-section"><h3>Heutige Spiele</h3>`;
-
-  if (rolledOff.length) {
-    html += `<div class="today-results-list">`;
-    for (const { m } of rolledOff) {
-      const home = teamDE(String(m[5]));
-      const away = teamDE(String(m[6]));
-      const hasResult = m[7] !== "" && m[8] !== "";
-      const resultStr = hasResult ? `${m[7]} – ${m[8]}` : String(m[2]) + " Uhr";
-      html += `<div class="today-result-row">
-        <span class="today-result-teams">${escHtml(home)} <span class="vs">vs</span> ${escHtml(away)}</span>
-        <span class="today-result-score ${hasResult ? "final" : "pending"}">${escHtml(resultStr)}</span>
-      </div>`;
-    }
-    html += `</div>`;
-  }
-
-  html += `<div class="today-matches-grid">`;
-
-  for (const { m, i: matchIdx } of visible) {
+  for (const { m, i: matchIdx } of todayMatches) {
+    const entry = { m, i: matchIdx };
     const home = teamDE(String(m[5]));
     const away = teamDE(String(m[6]));
     const homeScore = m[7];
     const awayScore = m[8];
     const hasResult = homeScore !== "" && awayScore !== "";
+    const started = hasStarted(entry);
+    const live = isLive(entry);
+
     const resultStr = hasResult ? `${homeScore} – ${awayScore}` : String(m[2]) + " Uhr";
+    const liveBadge = live ? ` <span class="live-badge">● LIVE</span>` : "";
+    // Started matches expanded by default; upcoming matches collapsed
+    const collapsed = started ? "" : " tm-collapsed";
+
     const gmCol = groupMatchIndices.indexOf(matchIdx);
     const ptCol = gmCol >= 0 ? gmCol + 1 : -1;
 
-    const kickoffDt = new Date(`${today}T${String(m[2])}:00`);
-    const isLive = !isNaN(kickoffDt) && now >= kickoffDt.getTime() && now < kickoffDt.getTime() + 120 * 60 * 1000;
-    const liveBadge = isLive ? ` <span class="live-badge">● LIVE</span>` : "";
-    const spanStyle = spanAll ? ` style="grid-column: 1 / -1"` : "";
-
-    html += `<div class="today-match-card"${spanStyle}>
-      <div class="today-match-header">
+    html += `<div class="today-match-card${collapsed}">
+      <div class="today-match-header" onclick="this.closest('.today-match-card').classList.toggle('tm-collapsed')">
         <span class="today-match-teams">${escHtml(home)} <span class="vs">vs</span> ${escHtml(away)}${liveBadge}</span>
         <span class="today-match-result ${hasResult ? "final" : "pending"}">${escHtml(resultStr)}</span>
+        <span class="tm-chevron">▾</span>
       </div>`;
 
     if (players.length && ptCol >= 0) {
