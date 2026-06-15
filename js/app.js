@@ -319,6 +319,13 @@ async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
   const hasStarted = x => now >= kickoffMs(x);
   const isLive = x => { const k = kickoffMs(x); return now >= k && now < k + 120 * 60 * 1000; };
 
+  // Visible window: most recently started match + next upcoming match
+  const lastStarted = todayMatches.filter(hasStarted).at(-1);
+  const nextUpcoming = todayMatches.find(x => !hasStarted(x));
+  const visibleSet = new Set(
+    [lastStarted, nextUpcoming].filter(Boolean).map(x => x.i)
+  );
+
   let html = `<div class="today-section"><h3>Heutige Spiele</h3><div class="today-matches-list">`;
 
   for (const { m, i: matchIdx } of todayMatches) {
@@ -328,13 +335,12 @@ async function renderTodayMatches(matchRows, pointsMatrix, tipsMap, container) {
     const homeScore = m[7];
     const awayScore = m[8];
     const hasResult = homeScore !== "" && awayScore !== "";
-    const started = hasStarted(entry);
     const live = isLive(entry);
 
     const resultStr = hasResult ? `${homeScore} – ${awayScore}` : String(m[2]) + " Uhr";
     const liveBadge = live ? ` <span class="live-badge">● LIVE</span>` : "";
-    // Started matches expanded by default; upcoming matches collapsed
-    const collapsed = started ? "" : " tm-collapsed";
+    // Only the visible window is expanded by default; everything else collapsed
+    const collapsed = visibleSet.has(matchIdx) ? "" : " tm-collapsed";
 
     const gmCol = groupMatchIndices.indexOf(matchIdx);
     const ptCol = gmCol >= 0 ? gmCol + 1 : -1;
