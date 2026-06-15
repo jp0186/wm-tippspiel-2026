@@ -651,7 +651,7 @@ async function renderResults() {
     for (const [groupName, items] of Object.entries(groups)) {
       if (items[0].match[4] !== "Group Stage") continue;
 
-      html += `<section class="group-section" id="group-${encodeURIComponent(groupName)}"><h2>Gruppe ${escHtml(groupName)}</h2>`;
+      html += `<section class="group-section" id="group-${encodeURIComponent(groupName)}"><h2>Gruppe ${escHtml(groupName)}<a class="group-top-link" href="#" title="Nach oben">↑</a></h2>`;
 
       items.forEach(({ match, matchIdx }) => {
         const date = new Date(match[1]).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
