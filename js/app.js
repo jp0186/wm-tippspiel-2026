@@ -1221,8 +1221,8 @@ async function renderPlayerDetail() {
         html += `<div class="pd-scored-row">
           <span class="pd-scored-date">${escHtml(d)}</span>
           <span class="pd-scored-match">${escHtml(t.home)} <span class="vs">vs</span> ${escHtml(t.away)}</span>
-          <span class="pd-scored-result">${escHtml(String(t.homeScore))}:${escHtml(String(t.awayScore))}</span>
-          <span class="pd-scored-tip">${escHtml(t.tip)}</span>
+          <span class="pd-scored-tip"><span class="pd-scored-label">Tipp</span> ${escHtml(t.tip)}</span>
+          <span class="pd-scored-result"><span class="pd-scored-label">Erg.</span> ${escHtml(String(t.homeScore))}:${escHtml(String(t.awayScore))}</span>
           <span class="pd-scored-pts ${ptClass}">${t.pts} Pkt</span>
         </div>`;
       });
