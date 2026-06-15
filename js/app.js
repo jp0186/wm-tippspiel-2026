@@ -1167,7 +1167,7 @@ async function renderPlayerDetail() {
         <div class="pd-stat"><span class="pd-stat-val">${specialTotal}</span><span class="pd-stat-label">Spezialpunkte</span>${rankTag(rSpecial)}</div>
         <div class="pd-stat"><span class="pd-stat-val">${exact}</span><span class="pd-stat-label">Genaue Tipps</span>${rankTag(rExact)}</div>
         <div class="pd-stat"><span class="pd-stat-val">${outcome}</span><span class="pd-stat-label">Tendenz richtig</span>${rankTag(rOutcome)}</div>
-        <div class="pd-stat"><span class="pd-stat-val">${played > 0 ? Math.round(100*(exact+outcome)/played) : "–"}${played > 0 ? "%" : ""}</span><span class="pd-stat-label">Trefferquote</span>${rHit ? rankTag(rHit) : ""}</div>
+        <div class="pd-stat"><span class="pd-stat-val">${played > 0 ? Math.round(100*(exact+outcome)/played) : "–"}${played > 0 ? "%" : ""}</span><span class="pd-stat-label">Trefferquote <span class="pd-tooltip-wrap">?<span class="pd-tooltip">Anteil der Tipps mit mind. 1 Punkt (genaues Ergebnis oder richtiger Ausgang) an allen gewerteten Spielen.</span></span></span>${rHit ? rankTag(rHit) : ""}</div>
       </div>`;
 
     // Spezialtipps table
