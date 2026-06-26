@@ -1150,6 +1150,43 @@ async function renderPlayerDetail() {
     const rHit     = isNaN(myHitRate) ? null : rankDesc(myHitRate, allHit);
     const rankTag  = r => `<span class="pd-stat-rank">#${r}</span>`;
 
+    // ── Closeness metrics: Manhattan-Distanz + Pech-Faktor ──────────────────
+    // For every played group match, measure how far the tip was from the
+    // result in goals (|tipHome−actHome| + |tipAway−actAway|). Independent of
+    // the points system, so it surfaces "close but scored nothing" near-misses.
+    const tipsByPlayer = {};
+    tipsRows.forEach(r => { tipsByPlayer[String(r[0])] = r; });
+    const parseScoreStr = s => {
+      const mm = String(s ?? "").trim().match(/^(\d{1,2})\s*[-:]\s*(\d{1,2})$/);
+      return mm ? [parseInt(mm[1]), parseInt(mm[2])] : null;
+    };
+    const closenessStats = (ptRow, tipRow) => {
+      let distSum = 0, distCount = 0, pech = 0;
+      for (let i = 0; i < groupMatchCount; i++) {
+        if (!hasResult[i]) continue;
+        const tip = parseScoreStr(tipRow?.[i + 1]);
+        if (!tip) continue;
+        const gm = groupMatches[i];
+        const ah = parseInt(String(gm[7]), 10), aa = parseInt(String(gm[8]), 10);
+        if (isNaN(ah) || isNaN(aa)) continue;
+        const d = Math.abs(tip[0] - ah) + Math.abs(tip[1] - aa);
+        distSum += d; distCount++;
+        const pts = parseInt(String(ptRow?.[i + 1] ?? ""), 10);
+        if (pts === 0 && d <= 1) pech++;
+      }
+      return { avgDist: distCount > 0 ? distSum / distCount : NaN, pech };
+    };
+    // Rank helper: 1 = best; lower value = better rank (asc) — for distance
+    const rankAsc = (myVal, allVals) => {
+      const sorted = [...allVals].filter(v => !isNaN(v)).sort((a, b) => a - b);
+      return sorted.findIndex(v => v >= myVal) + 1;
+    };
+    const myClose  = closenessStats(ptsRow, tipsByPlayer[playerName]);
+    const allDist  = ptsRows.map(r => closenessStats(r, tipsByPlayer[String(r[0])]).avgDist);
+    const allPech  = ptsRows.map(r => closenessStats(r, tipsByPlayer[String(r[0])]).pech);
+    const rDist    = isNaN(myClose.avgDist) ? null : rankAsc(myClose.avgDist, allDist);
+    const rPech    = rankDesc(myClose.pech, allPech);
+
     const src = playerImgSrc(playerName);
     let html = `
       <div class="pd-header">
@@ -1168,6 +1205,8 @@ async function renderPlayerDetail() {
         <div class="pd-stat"><span class="pd-stat-val">${exact}</span><span class="pd-stat-label">Genaue Tipps</span>${rankTag(rExact)}</div>
         <div class="pd-stat"><span class="pd-stat-val">${outcome}</span><span class="pd-stat-label">Tendenz richtig</span>${rankTag(rOutcome)}</div>
         <div class="pd-stat"><span class="pd-stat-val">${played > 0 ? Math.round(100*(exact+outcome)/played) : "–"}${played > 0 ? "%" : ""}</span><span class="pd-stat-label">Trefferquote <span class="pd-tooltip-wrap">?<span class="pd-tooltip">Anteil der Tipps mit mind. 1 Punkt (genaues Ergebnis oder richtiger Ausgang) an allen gewerteten Spielen.</span></span></span>${rHit ? rankTag(rHit) : ""}</div>
+        <div class="pd-stat"><span class="pd-stat-val">${isNaN(myClose.avgDist) ? "–" : myClose.avgDist.toFixed(1).replace(".", ",")}</span><span class="pd-stat-label">Manhattan-Distanz <span class="pd-tooltip-wrap">?<span class="pd-tooltip">Wie weit die Tipps im Schnitt vom echten Ergebnis weg waren — Tor-Abweichung pro Spiel für beide Teams zusammengezählt (Tipp 0:0 bei Ergebnis 1:0 = 1). Kleiner = näher an der Realität, ganz unabhängig von den Punkten.</span></span></span>${rDist ? rankTag(rDist) : ""}</div>
+        <div class="pd-stat"><span class="pd-stat-val">${myClose.pech}</span><span class="pd-stat-label">Pech-Faktor <span class="pd-tooltip-wrap">?<span class="pd-tooltip">Spiele, die nur 1 Tor von der Realität entfernt waren, aber trotzdem 0 Punkte brachten — ganz knapp daneben. Höher = mehr Pech gehabt.</span></span></span>${rankTag(rPech)}</div>
       </div>`;
 
     // Spezialtipps table
