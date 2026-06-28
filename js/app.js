@@ -708,8 +708,8 @@ function renderProgressChart(matchRows, pointsRows, container) {
       borderColor: color,
       backgroundColor: color,
       pointStyle: CHART_SHAPES[pi % CHART_SHAPES.length],
-      pointRadius: 5,
-      pointHoverRadius: 7,
+      pointRadius: 0,
+      pointHoverRadius: 0,
       tension: 0.3,
       borderWidth: 2,
     };
