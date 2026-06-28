@@ -788,26 +788,9 @@ function renderProgressChart(matchRows, pointsRows, container) {
       responsive: true,
       maintainAspectRatio: false,
       layout: { padding: { right: 96 } },
-      interaction: { mode: "index", intersect: false },
-      onHover: (evt, _active, chart) => {
-        const rects = chart.$labelRects || [];
-        let found = null;
-        for (const r of rects) {
-          if (evt.x >= r.x && evt.x <= r.x + r.w && evt.y >= r.y && evt.y <= r.y + r.h) { found = r.i; break; }
-        }
-        if ((chart.$hoverLabel ?? null) !== found) {
-          chart.$hoverLabel = found;
-          applyChartHighlight(chart, found);
-        }
-      },
       plugins: {
         legend: { display: false },
-        tooltip: {
-          callbacks: {
-            title: items => `Nach Spiel ${items[0].label}`,
-            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y} Pkt`,
-          },
-        },
+        tooltip: { enabled: false },
       },
       scales: {
         x: {
@@ -825,13 +808,28 @@ function renderProgressChart(matchRows, pointsRows, container) {
     },
   });
 
-  // Reset the highlight when the pointer leaves the chart.
-  ctx.canvas.addEventListener("mouseleave", () => {
-    if ((_progressChart.$hoverLabel ?? null) !== null) {
-      _progressChart.$hoverLabel = null;
-      applyChartHighlight(_progressChart, null);
+  // Hover a name label → highlight that curve. A direct canvas listener is more
+  // reliable than Chart's onHover, which doesn't fire for the right-padding area
+  // where the labels live. Element positions and label rects are in CSS pixels,
+  // matching clientX/Y minus the canvas rect.
+  const cv = ctx.canvas;
+  function setHover(found) {
+    if ((_progressChart.$hoverLabel ?? null) !== found) {
+      _progressChart.$hoverLabel = found;
+      applyChartHighlight(_progressChart, found);
     }
+  }
+  cv.addEventListener("mousemove", ev => {
+    const rect = cv.getBoundingClientRect();
+    const x = ev.clientX - rect.left, y = ev.clientY - rect.top;
+    let found = null;
+    for (const r of (_progressChart.$labelRects || [])) {
+      if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) { found = r.i; break; }
+    }
+    cv.style.cursor = found !== null ? "pointer" : "default";
+    setHover(found);
   });
+  cv.addEventListener("mouseleave", () => setHover(null));
 }
 
 function renderNews(rows, container) {

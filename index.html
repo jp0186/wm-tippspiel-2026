@@ -459,8 +459,9 @@
       margin-bottom: 0.75rem;
     }
 
-    .chart-canvas-wrap { position: relative; height: 640px; }
-    .chart-box canvas { max-height: 640px; }
+    /* Square-ish chart so mobile and desktop share a ~1:1 aspect ratio. */
+    .chart-canvas-wrap { position: relative; width: 100%; aspect-ratio: 1 / 1; max-height: 760px; }
+    .chart-box canvas { display: block; }
 
     @media (max-width: 500px) {
       .leaderboard-table th:nth-child(4),
@@ -499,7 +500,7 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-  <script src="js/app.js?v=20"></script>
+  <script src="js/app.js?v=22"></script>
   <script>
     autoRefresh(renderLeaderboard);
   </script>
