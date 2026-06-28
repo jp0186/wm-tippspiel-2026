@@ -715,7 +715,7 @@ function renderProgressChart(matchRows, pointsRows, container) {
     };
   });
 
-  container.innerHTML = `<div class="chart-box"><h3>Punkteverlauf</h3><canvas id="progress-chart"></canvas></div>`;
+  container.innerHTML = `<div class="chart-box"><h3>Punkteverlauf</h3><div class="chart-canvas-wrap"><canvas id="progress-chart"></canvas></div></div>`;
   const ctx = document.getElementById("progress-chart").getContext("2d");
 
   if (_progressChart) { _progressChart.destroy(); _progressChart = null; }
@@ -725,6 +725,7 @@ function renderProgressChart(matchRows, pointsRows, container) {
     data: { labels, datasets },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       interaction: { mode: "index", intersect: false },
       plugins: {
         legend: { display: false },

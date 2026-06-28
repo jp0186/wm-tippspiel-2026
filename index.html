@@ -459,7 +459,8 @@
       margin-bottom: 0.75rem;
     }
 
-    .chart-box canvas { max-height: 320px; }
+    .chart-canvas-wrap { position: relative; height: 640px; }
+    .chart-box canvas { max-height: 640px; }
 
     @media (max-width: 500px) {
       .leaderboard-table th:nth-child(4),
@@ -498,7 +499,7 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-  <script src="js/app.js?v=18"></script>
+  <script src="js/app.js?v=19"></script>
   <script>
     autoRefresh(renderLeaderboard);
   </script>
