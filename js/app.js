@@ -679,6 +679,65 @@ let _progressChart = null;
 const CHART_COLORS = ["#4f86f7","#f5c518","#4ade80","#f87171","#c084fc","#fb923c","#38bdf8","#f472b6"];
 const CHART_SHAPES = ["circle","triangle","rect","rectRot","star","cross","crossRot","dash"];
 
+// "#rrggbb" → "rgba(r,g,b,a)"
+function hexAlpha(hex, a) {
+  const h = String(hex).replace("#", "");
+  const n = parseInt(h.length === 3 ? h.split("").map(c => c + c).join("") : h, 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+}
+
+// Highlight one curve (index hi) by dimming the others; hi === null resets.
+function applyChartHighlight(chart, hi) {
+  chart.data.datasets.forEach((ds, i) => {
+    const base = ds._baseColor;
+    if (hi === null)      { ds.borderColor = base; ds.borderWidth = 2; }
+    else if (i === hi)    { ds.borderColor = base; ds.borderWidth = 3.5; }
+    else                  { ds.borderColor = hexAlpha(base, 0.12); ds.borderWidth = 1.5; }
+  });
+  chart.update("none");
+}
+
+// Draws each player's name at the right end of their line, and records the label
+// hit-boxes so onHover can highlight the matching curve.
+const endLabelPlugin = {
+  id: "endLabels",
+  afterDatasetsDraw(chart) {
+    const { ctx, chartArea } = chart;
+    const hi = chart.$hoverLabel ?? null;
+    const entries = chart.data.datasets.map((ds, i) => {
+      const meta = chart.getDatasetMeta(i);
+      if (meta.hidden || !meta.data || !meta.data.length) return null;
+      const last = meta.data[meta.data.length - 1];
+      return { i, x: last.x, y: last.y, label: ds.label, color: ds._baseColor };
+    }).filter(Boolean);
+
+    // Spread labels vertically so close line-ends don't overlap.
+    entries.sort((a, b) => a.y - b.y);
+    const gap = 15;
+    for (let k = 1; k < entries.length; k++) {
+      if (entries[k].y - entries[k - 1].y < gap) entries[k].y = entries[k - 1].y + gap;
+    }
+    const overflow = entries.length && entries[entries.length - 1].y - chartArea.bottom;
+    if (overflow > 0) entries.forEach(e => { e.y -= overflow; });
+
+    ctx.save();
+    ctx.textBaseline = "middle";
+    const rects = [];
+    entries.forEach(e => {
+      const active = hi === e.i;
+      const dim = hi !== null && !active;
+      ctx.font = `${active ? "700" : "400"} 12px "Segoe UI", system-ui, sans-serif`;
+      ctx.fillStyle = dim ? hexAlpha(e.color, 0.25) : e.color;
+      const tx = e.x + 8;
+      ctx.fillText(e.label, tx, e.y);
+      const w = ctx.measureText(e.label).width;
+      rects.push({ i: e.i, x: tx - 3, y: e.y - 9, w: w + 8, h: 18 });
+    });
+    ctx.restore();
+    chart.$labelRects = rects;
+  },
+};
+
 function renderProgressChart(matchRows, pointsRows, container) {
   if (typeof Chart === "undefined") { container.innerHTML = ""; return; }
 
@@ -707,6 +766,7 @@ function renderProgressChart(matchRows, pointsRows, container) {
       data,
       borderColor: color,
       backgroundColor: color,
+      _baseColor: color,
       pointStyle: CHART_SHAPES[pi % CHART_SHAPES.length],
       pointRadius: 0,
       pointHoverRadius: 0,
@@ -723,10 +783,23 @@ function renderProgressChart(matchRows, pointsRows, container) {
   _progressChart = new Chart(ctx, {
     type: "line",
     data: { labels, datasets },
+    plugins: [endLabelPlugin],
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: { padding: { right: 96 } },
       interaction: { mode: "index", intersect: false },
+      onHover: (evt, _active, chart) => {
+        const rects = chart.$labelRects || [];
+        let found = null;
+        for (const r of rects) {
+          if (evt.x >= r.x && evt.x <= r.x + r.w && evt.y >= r.y && evt.y <= r.y + r.h) { found = r.i; break; }
+        }
+        if ((chart.$hoverLabel ?? null) !== found) {
+          chart.$hoverLabel = found;
+          applyChartHighlight(chart, found);
+        }
+      },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -750,6 +823,14 @@ function renderProgressChart(matchRows, pointsRows, container) {
         },
       },
     },
+  });
+
+  // Reset the highlight when the pointer leaves the chart.
+  ctx.canvas.addEventListener("mouseleave", () => {
+    if ((_progressChart.$hoverLabel ?? null) !== null) {
+      _progressChart.$hoverLabel = null;
+      applyChartHighlight(_progressChart, null);
+    }
   });
 }
 
