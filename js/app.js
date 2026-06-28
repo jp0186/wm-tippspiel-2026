@@ -356,7 +356,7 @@ function renderKnockoutScorers(scorersRows, set) {
     return `<tr${rank === 1 ? ' class="ks-top"' : ""}><td class="ks-rank">${rank}</td><td>${escHtml(String(r[0]))} <span class="ks-team">(${escHtml(teamDE(String(r[1])))})</span></td><td class="ks-val">${v}</td></tr>`;
   }).join("");
   return `<div class="ks-box">
-    <h3>Torschützenliste <small>(noch im Turnier)</small></h3>
+    <h3>Torschützenkönig <small>(noch im Rennen)</small></h3>
     <table class="ks-table"><tbody>${body}</tbody></table>
   </div>`;
 }
