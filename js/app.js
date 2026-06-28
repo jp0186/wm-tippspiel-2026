@@ -338,10 +338,14 @@ function renderRoundTiles(matchRows) {
   </div>`;
 }
 
-// Ranked still-in top-scorer list (cf. miniTable in renderSpecial).
+// Ranked top-scorer list. Normally limited to players still in the tournament, but the
+// current leader(s) stay even if their team is out — they remain the leading scorer (and
+// hold the Torschützenkönig bet) until someone with more goals surpasses them.
 function renderKnockoutScorers(scorersRows, set) {
-  const items = scorersRows
-    .filter(r => r[0] && parseInt(r[2]) > 0 && isStillIn(r[1], set))
+  const valid = scorersRows.filter(r => r[0] && parseInt(r[2]) > 0);
+  const globalMax = valid.reduce((m, r) => Math.max(m, parseInt(r[2])), 0);
+  const items = valid
+    .filter(r => isStillIn(r[1], set) || parseInt(r[2]) === globalMax)
     .slice(0, 10);
   if (!items.length) return "";
   let rank = 1, prev = null, count = 0;
