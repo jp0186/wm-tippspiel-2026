@@ -136,6 +136,8 @@ function teamDE(name) {
 
 // German/English team name (lowercase) → flag emoji
 const TEAM_FLAG = {
+  "ägypten": "🇪🇬", "egypt": "🇪🇬",
+  "algerien": "🇩🇿", "algeria": "🇩🇿",
   "argentinien": "🇦🇷", "argentina": "🇦🇷",
   "australien": "🇦🇺", "australia": "🇦🇺",
   "belgien": "🇧🇪", "belgium": "🇧🇪",
@@ -147,6 +149,7 @@ const TEAM_FLAG = {
   "costa rica": "🇨🇷",
   "dänemark": "🇩🇰", "denmark": "🇩🇰",
   "deutschland": "🇩🇪", "germany": "🇩🇪",
+  "dr kongo": "🇨🇩", "congo dr": "🇨🇩",
   "ecuador": "🇪🇨",
   "elfenbeinküste": "🇨🇮", "ivory coast": "🇨🇮",
   "england": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
@@ -177,6 +180,7 @@ const TEAM_FLAG = {
   "portugal": "🇵🇹",
   "saudi-arabien": "🇸🇦", "saudi arabia": "🇸🇦",
   "schottland": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "scotland": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+  "schweden": "🇸🇪", "sweden": "🇸🇪",
   "schweiz": "🇨🇭", "switzerland": "🇨🇭",
   "senegal": "🇸🇳",
   "serbien": "🇷🇸", "serbia": "🇷🇸",
