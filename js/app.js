@@ -371,20 +371,20 @@ function renderSemiTips(spTipsRows, spPtsRows, set) {
   const rows = players.map(r => {
     const picks = [r[3], r[4], r[5], r[6]].map(v => String(v ?? ""));
     const cells = picks.map(p => {
-      if (!p) return `<td class="semi-cell empty">–</td>`;
+      if (!p) return `<span class="semi-cell empty">–</span>`;
       const dead = !isStillIn(p, set);
-      return `<td class="semi-cell${dead ? " dead" : ""}">${escHtml(teamDE(p))}</td>`;
+      return `<span class="semi-cell${dead ? " dead" : ""}">${escHtml(teamDE(p))}</span>`;
     }).join("");
     const sf = parseInt(sfPtsByPlayer[String(r[0])], 10);
     const pts = isNaN(sf) ? 0 : sf;
-    return `<tr><td class="semi-player">${escHtml(String(r[0]))}</td>${cells}<td class="semi-pts">${pts}</td></tr>`;
+    return `<div class="semi-row">
+      <div class="semi-row-head"><span class="semi-player">${escHtml(String(r[0]))}</span><span class="semi-pts">${pts} Pkt</span></div>
+      <div class="semi-picks">${cells}</div>
+    </div>`;
   }).join("");
   return `<div class="semi-box">
     <h3>Halbfinal-Tipps <small>(ausgeschiedene ausgegraut)</small></h3>
-    <div class="semi-scroll"><table class="semi-table">
-      <thead><tr><th>Spieler</th><th>HF 1</th><th>HF 2</th><th>HF 3</th><th>HF 4</th><th>Pkt</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table></div>
+    <div class="semi-list">${rows}</div>
   </div>`;
 }
 

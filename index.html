@@ -304,10 +304,10 @@
 
     .round-tiles {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 0.6rem;
     }
-    @media (max-width: 600px) { .round-tiles { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) { .round-tiles { grid-template-columns: minmax(0, 1fr); } }
 
     .round-tile {
       background: var(--surface);
@@ -349,14 +349,26 @@
     .ks-top td { color: var(--gold); }
     .ks-top .ks-team { color: var(--gold); opacity: 0.8; }
 
-    .semi-scroll { overflow-x: auto; }
-    .semi-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    .semi-table th, .semi-table td { padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); text-align: center; white-space: nowrap; }
-    .semi-table th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
-    .semi-player { text-align: left !important; font-weight: 600; }
+    .semi-list { display: flex; flex-direction: column; gap: 0.6rem; }
+    .semi-row { border-bottom: 1px solid var(--border); padding-bottom: 0.6rem; }
+    .semi-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .semi-row-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.4rem; }
+    .semi-player { font-weight: 600; font-size: 0.95rem; }
+    .semi-pts { font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; font-size: 0.85rem; }
+    .semi-picks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.4rem; }
+    @media (max-width: 600px) { .semi-picks { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .semi-cell {
+      background: var(--surface2);
+      border-radius: 6px;
+      padding: 0.3rem 0.5rem;
+      font-size: 0.85rem;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .semi-cell.dead { color: var(--text-muted); text-decoration: line-through; opacity: 0.55; }
-    .semi-cell.empty { color: var(--text-muted); }
-    .semi-pts { font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .semi-cell.empty { color: var(--text-muted); background: transparent; }
 
     /* ── Phase 2: special-points emphasis ───────────── */
     .phase-banner {
@@ -486,7 +498,7 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-  <script src="js/app.js?v=15"></script>
+  <script src="js/app.js?v=16"></script>
   <script>
     autoRefresh(renderLeaderboard);
   </script>
