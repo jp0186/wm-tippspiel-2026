@@ -228,6 +228,165 @@ function parseGvizTable(table) {
   return { headers, rows };
 }
 
+// Phase 2 (knockout) begins once every Group Stage match has both scores.
+// Matches columns: 4 = stage, 7 = home_score, 8 = away_score.
+function isGroupPhaseComplete(matchRows) {
+  const group = matchRows.filter(m => String(m[4]) === "Group Stage");
+  if (!group.length) return false;
+  return group.every(m => String(m[7]) !== "" && String(m[8]) !== "");
+}
+
+// ── Knockout dashboard (Phase 2) ───────────────────────────────────────────────
+// Matches columns: 1 = date, 2 = time, 4 = stage, 5 = home, 6 = away, 7/8 = scores.
+
+const KNOCKOUT_ORDER = ["Round of 32", "Round of 16", "Quarter-finals", "Semi-finals", "Final"];
+const ROUND_DE = {
+  "Round of 32": "Sechzehntelfinale",
+  "Round of 16": "Achtelfinale",
+  "Quarter-finals": "Viertelfinale",
+  "Semi-finals": "Halbfinale",
+  "Third Place": "Spiel um Platz 3",
+  "Final": "Finale",
+};
+
+function norm(s) { return String(s ?? "").trim().toLowerCase(); }
+
+// Teams still in the tournament: the participants of the latest knockout round that has
+// been drawn, minus the losers of any already-decided match in that round. Returns a Set
+// of normalized names (both English and German forms), or null if no knockout teams are
+// assigned yet (→ callers treat everyone as still-in).
+function stillInTeams(matchRows) {
+  let latest = null;
+  for (const stage of KNOCKOUT_ORDER) {
+    const rows = matchRows.filter(m => String(m[4]) === stage && m[5] && m[6]);
+    if (rows.length) latest = { stage, rows };
+  }
+  if (!latest) return null;
+
+  const survivors = new Set();
+  latest.rows.forEach(m => { survivors.add(String(m[5])); survivors.add(String(m[6])); });
+  // Drop the loser of any decided match in this round (equal score = penalties → keep both).
+  latest.rows.forEach(m => {
+    const hs = parseInt(m[7]), as = parseInt(m[8]);
+    if (isNaN(hs) || isNaN(as) || hs === as) return;
+    survivors.delete(String(hs < as ? m[5] : m[6]));
+  });
+
+  const set = new Set();
+  survivors.forEach(t => { set.add(norm(t)); set.add(norm(teamDE(t))); });
+  return set;
+}
+
+function isStillIn(team, set) {
+  if (!set) return true;
+  return set.has(norm(team)) || set.has(norm(teamDE(team)));
+}
+
+// Compact tile string for one match.
+function roundTile(m) {
+  const home = teamDE(String(m[5])), away = teamDE(String(m[6]));
+  const fh = TEAM_FLAG[home.toLowerCase()] || TEAM_FLAG[norm(m[5])] || "";
+  const fa = TEAM_FLAG[away.toLowerCase()] || TEAM_FLAG[norm(m[6])] || "";
+  const hs = m[7], as = m[8];
+  const hasResult = String(hs) !== "" && String(as) !== "";
+  const dateLabel = (() => {
+    const d = new Date(`${String(m[1]).slice(0,10)}T00:00:00`);
+    return isNaN(d) ? String(m[1]) : d.toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" });
+  })();
+  const meta = hasResult ? dateLabel : `${dateLabel} · ${escHtml(String(m[2]))} Uhr`;
+  const center = hasResult ? `${escHtml(String(hs))}–${escHtml(String(as))}` : "vs";
+  return `<div class="round-tile${hasResult ? " done" : ""}">
+    <div class="rt-meta">${escHtml(meta)}</div>
+    <div class="rt-teams">
+      <span class="rt-side"><span class="rt-flag">${fh}</span><span class="rt-name">${escHtml(home)}</span></span>
+      <span class="rt-score">${center}</span>
+      <span class="rt-side rt-away"><span class="rt-name">${escHtml(away)}</span><span class="rt-flag">${fa}</span></span>
+    </div>
+  </div>`;
+}
+
+function renderRoundTiles(matchRows) {
+  // Current round = earliest drawn round with an unplayed match; else the latest drawn round.
+  let current = null, lastDrawn = null;
+  for (const stage of KNOCKOUT_ORDER) {
+    const rows = matchRows.filter(m => String(m[4]) === stage && m[5] && m[6]);
+    if (!rows.length) continue;
+    lastDrawn = stage;
+    const incomplete = rows.some(m => String(m[7]) === "" || String(m[8]) === "");
+    if (incomplete && !current) current = stage;
+  }
+  const stage = current || lastDrawn;
+  if (!stage) return "";
+
+  const stages = stage === "Final" ? ["Final", "Third Place"] : [stage];
+  let tiles = "";
+  stages.forEach(st => {
+    matchRows
+      .map((m, i) => ({ m, i }))
+      .filter(({ m }) => String(m[4]) === st && m[5] && m[6])
+      .sort((a, b) => new Date(`${String(a.m[1]).slice(0,10)}T${a.m[2] || "00:00"}`) - new Date(`${String(b.m[1]).slice(0,10)}T${b.m[2] || "00:00"}`))
+      .forEach(({ m }) => { tiles += roundTile(m); });
+  });
+  if (!tiles) return "";
+  return `<div class="round-section">
+    <h3>${escHtml(ROUND_DE[stage] || stage)}</h3>
+    <div class="round-tiles">${tiles}</div>
+  </div>`;
+}
+
+// Ranked still-in top-scorer list (cf. miniTable in renderSpecial).
+function renderKnockoutScorers(scorersRows, set) {
+  const items = scorersRows
+    .filter(r => r[0] && parseInt(r[2]) > 0 && isStillIn(r[1], set))
+    .slice(0, 10);
+  if (!items.length) return "";
+  let rank = 1, prev = null, count = 0;
+  const body = items.map(r => {
+    const v = parseInt(r[2]);
+    if (v !== prev) { rank = count + 1; prev = v; }
+    count++;
+    return `<tr${rank === 1 ? ' class="ks-top"' : ""}><td class="ks-rank">${rank}</td><td>${escHtml(String(r[0]))} <span class="ks-team">(${escHtml(teamDE(String(r[1])))})</span></td><td class="ks-val">${v}</td></tr>`;
+  }).join("");
+  return `<div class="ks-box">
+    <h3>Torschützenliste <small>(noch im Turnier)</small></h3>
+    <table class="ks-table"><tbody>${body}</tbody></table>
+  </div>`;
+}
+
+// Semifinal-tips grid; picks whose team is out are greyed (cf. halbTable in renderSpecial).
+function renderSemiTips(spTipsRows, spPtsRows, set) {
+  if (!spTipsRows.length) return "";
+  const sfPtsByPlayer = {};
+  spPtsRows.forEach(r => { if (r[0]) sfPtsByPlayer[String(r[0])] = r[3]; }); // Special_Points col 3 = SF pts
+  // Skip the Special_Tips header row (gviz passes it as data when all columns are text).
+  const players = spTipsRows.filter(r => r[0] && String(r[0]).trim() !== "Spieler");
+  const rows = players.map(r => {
+    const picks = [r[3], r[4], r[5], r[6]].map(v => String(v ?? ""));
+    const cells = picks.map(p => {
+      if (!p) return `<td class="semi-cell empty">–</td>`;
+      const dead = !isStillIn(p, set);
+      return `<td class="semi-cell${dead ? " dead" : ""}">${escHtml(teamDE(p))}</td>`;
+    }).join("");
+    const sf = parseInt(sfPtsByPlayer[String(r[0])], 10);
+    const pts = isNaN(sf) ? 0 : sf;
+    return `<tr><td class="semi-player">${escHtml(String(r[0]))}</td>${cells}<td class="semi-pts">${pts}</td></tr>`;
+  }).join("");
+  return `<div class="semi-box">
+    <h3>Halbfinal-Tipps <small>(ausgeschiedene ausgegraut)</small></h3>
+    <div class="semi-scroll"><table class="semi-table">
+      <thead><tr><th>Spieler</th><th>HF 1</th><th>HF 2</th><th>HF 3</th><th>HF 4</th><th>Pkt</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+  </div>`;
+}
+
+function renderKnockoutDashboard(matchRows, scorersRows, spTipsRows, spPtsRows) {
+  const set = stillInTeams(matchRows);
+  return renderRoundTiles(matchRows)
+       + renderKnockoutScorers(scorersRows, set)
+       + renderSemiTips(spTipsRows, spPtsRows, set);
+}
+
 // ── Upcoming matches / countdown ───────────────────────────────────────────────
 
 function todayStr() {
@@ -409,12 +568,14 @@ async function renderLeaderboard() {
   const statusEl = document.getElementById("status");
 
   try {
-    const [{ rows: lbRows }, { rows: matchRows }, { rows: pointsRows }, tipsData, spTipsData, newsData] = await Promise.all([
+    const [{ rows: lbRows }, { rows: matchRows }, { rows: pointsRows }, tipsData, spTipsData, scorersData, spPtsData, newsData] = await Promise.all([
       fetchSheet("Leaderboard"),
       fetchSheet("Matches"),
       fetchSheet("Points"),
       fetchSheet("Tips").catch(() => ({ headers: [], rows: [] })),
       fetchSheet("Special_Tips").catch(() => ({ headers: [], rows: [] })),
+      fetchSheet("Top_Scorers").catch(() => ({ headers: [], rows: [] })),
+      fetchSheet("Special_Points").catch(() => ({ headers: [], rows: [] })),
       fetchSheet("News").catch(() => ({ headers: [], rows: [] })),
     ]);
 
@@ -425,12 +586,26 @@ async function renderLeaderboard() {
     const weltmeisterMap = {};
     spTipsData.rows.forEach(r => { if (r[0]) weltmeisterMap[String(r[0])] = String(r[1] || ""); });
 
-    if (upcomingContainer && matchRows.length) {
-      renderUpcoming(matchRows, upcomingContainer);
+    // Phase 2 (knockout): show the knockout dashboard above the banner and let the
+    // round tiles supersede the group-phase "Nächste Spiele" block.
+    const groupComplete = isGroupPhaseComplete(matchRows);
+    const phase2Container = document.getElementById("phase2-container");
+    if (phase2Container) {
+      phase2Container.innerHTML = groupComplete
+        ? renderKnockoutDashboard(matchRows, scorersData.rows, spTipsData.rows, spPtsData.rows)
+        : "";
     }
 
-    if (todayContainer && matchRows.length) {
+    if (upcomingContainer && matchRows.length && !groupComplete) {
+      renderUpcoming(matchRows, upcomingContainer);
+    } else if (upcomingContainer && groupComplete) {
+      upcomingContainer.innerHTML = "";
+    }
+
+    if (todayContainer && matchRows.length && !groupComplete) {
       await renderTodayMatches(matchRows, pointsRows, tipsMap, todayContainer);
+    } else if (todayContainer && groupComplete) {
+      todayContainer.innerHTML = "";
     }
 
     if (!lbRows.length) {
@@ -438,13 +613,19 @@ async function renderLeaderboard() {
       return;
     }
 
-    let html = `<table class="leaderboard-table">
+    // Phase 2: group stage done → special points are awarded, so emphasize them.
+    const emphCls = groupComplete ? " sp-emphasis" : "";
+    const banner = groupComplete
+      ? `<div class="phase-banner">⭐ Gruppenphase abgeschlossen — die ersten Spezialtipps wurden vergeben! <a href="special.html">Spezialtipps ansehen</a></div>`
+      : "";
+
+    let html = banner + `<table class="leaderboard-table">
       <thead><tr>
         <th>#</th>
         <th>Spieler</th>
         <th>Gesamt</th>
         <th>Spiele</th>
-        <th>Spezialtipps</th>
+        <th class="${emphCls.trim()}">Spezialtipps</th>
       </tr></thead><tbody>`;
 
     lbRows.forEach((row) => {
@@ -463,7 +644,7 @@ async function renderLeaderboard() {
         <td class="name-cell"><a class="player-link" href="player.html?player=${encodeURIComponent(String(name))}">${escHtml(String(name))}</a>${flagHtml}</td>
         <td class="pts-cell total">${total}</td>
         <td class="pts-cell">${matchPts}</td>
-        <td class="pts-cell">${specialPts}</td>
+        <td class="pts-cell${emphCls}">${specialPts}</td>
       </tr>`;
     });
 

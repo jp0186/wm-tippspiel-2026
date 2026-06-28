@@ -284,6 +284,103 @@
     tr.rank-2 .name-cell { color: var(--silver); }
     tr.rank-3 .name-cell { color: var(--bronze); }
 
+    /* ── Phase 2: knockout dashboard ────────────────── */
+    .round-section, .ks-box, .semi-box { margin-bottom: 1.75rem; }
+
+    .round-section h3, .ks-box h3, .semi-box h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+    .round-section h3 small, .ks-box h3 small, .semi-box h3 small {
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--text-muted);
+      font-weight: 400;
+      margin-left: 0.3rem;
+    }
+
+    .round-tiles {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.6rem;
+    }
+    @media (max-width: 600px) { .round-tiles { grid-template-columns: 1fr; } }
+
+    .round-tile {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.55rem 0.85rem;
+    }
+    .round-tile.done { border-color: #2f6d46; }
+
+    .rt-meta { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.35rem; }
+
+    .rt-teams { display: flex; align-items: center; gap: 0.5rem; }
+    .rt-side { flex: 1; display: flex; align-items: center; gap: 0.4rem; min-width: 0; }
+    .rt-side.rt-away { justify-content: flex-end; text-align: right; }
+    .rt-flag { font-size: 1.1rem; flex-shrink: 0; }
+    .rt-name { font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rt-score {
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-muted);
+      min-width: 2.6rem;
+      text-align: center;
+    }
+    .round-tile.done .rt-score { color: var(--green); }
+
+    .ks-box, .semi-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+    }
+
+    .ks-table { width: 100%; border-collapse: collapse; }
+    .ks-table td { padding: 0.3rem 0.4rem; border-top: 1px solid var(--border); font-size: 0.9rem; }
+    .ks-table tr:first-child td { border-top: none; }
+    .ks-rank { width: 1.8rem; color: var(--text-muted); text-align: center; }
+    .ks-val { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; width: 2.5rem; }
+    .ks-team { color: var(--text-muted); font-size: 0.82rem; }
+    .ks-top td { color: var(--gold); }
+    .ks-top .ks-team { color: var(--gold); opacity: 0.8; }
+
+    .semi-scroll { overflow-x: auto; }
+    .semi-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .semi-table th, .semi-table td { padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); text-align: center; white-space: nowrap; }
+    .semi-table th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+    .semi-player { text-align: left !important; font-weight: 600; }
+    .semi-cell.dead { color: var(--text-muted); text-decoration: line-through; opacity: 0.55; }
+    .semi-cell.empty { color: var(--text-muted); }
+    .semi-pts { font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+
+    /* ── Phase 2: special-points emphasis ───────────── */
+    .phase-banner {
+      background: linear-gradient(90deg, rgba(245,197,24,0.18), rgba(245,197,24,0.06));
+      border: 1px solid var(--gold);
+      border-radius: var(--radius);
+      color: var(--text);
+      padding: 0.7rem 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .phase-banner a { color: var(--gold); text-decoration: none; white-space: nowrap; }
+    .phase-banner a:hover { text-decoration: underline; }
+
+    .leaderboard-table th.sp-emphasis { color: var(--gold); }
+
+    .pts-cell.sp-emphasis {
+      color: var(--gold);
+      font-weight: 700;
+      background: rgba(245,197,24,0.07);
+    }
+
     .empty, .error { text-align: center; padding: 3rem; color: var(--text-muted); }
     .error { color: #f87171; }
     a.player-link { color: inherit; text-decoration: none; }
@@ -377,6 +474,7 @@
 
   <main>
     <div id="status"></div>
+    <div id="phase2-container"></div>
     <div id="upcoming-container"></div>
     <div id="today-container"></div>
 
@@ -388,7 +486,7 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-  <script src="js/app.js?v=11"></script>
+  <script src="js/app.js?v=13"></script>
   <script>
     autoRefresh(renderLeaderboard);
   </script>
