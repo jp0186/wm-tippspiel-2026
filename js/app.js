@@ -255,22 +255,20 @@ const ROUND_DE = {
 
 function norm(s) { return String(s ?? "").trim().toLowerCase(); }
 
-// Teams still in the tournament: the participants of the latest knockout round that has
-// been drawn, minus the losers of any already-decided match in that round. Returns a Set
-// of normalized names (both English and German forms), or null if no knockout teams are
-// assigned yet (→ callers treat everyone as still-in).
+// Teams still in the tournament: every team that has appeared in a drawn knockout match,
+// minus the losers of any already-decided knockout match (at any round). Taking the full
+// knockout participant pool — not just the latest drawn round — keeps teams that are still
+// waiting to play their Round-of-32 game in the survivor set even after later rounds start
+// to be drawn. Returns a Set of normalized names (both English and German forms), or null
+// if no knockout teams are assigned yet (→ callers treat everyone as still-in).
 function stillInTeams(matchRows) {
-  let latest = null;
-  for (const stage of KNOCKOUT_ORDER) {
-    const rows = matchRows.filter(m => String(m[4]) === stage && m[5] && m[6]);
-    if (rows.length) latest = { stage, rows };
-  }
-  if (!latest) return null;
+  const ko = matchRows.filter(m => KNOCKOUT_ORDER.includes(String(m[4])) && m[5] && m[6]);
+  if (!ko.length) return null;
 
   const survivors = new Set();
-  latest.rows.forEach(m => { survivors.add(String(m[5])); survivors.add(String(m[6])); });
-  // Drop the loser of any decided match in this round (equal score = penalties → keep both).
-  latest.rows.forEach(m => {
+  ko.forEach(m => { survivors.add(String(m[5])); survivors.add(String(m[6])); });
+  // Drop the loser of any decided knockout match (equal score = penalties → keep both).
+  ko.forEach(m => {
     const hs = parseInt(m[7]), as = parseInt(m[8]);
     if (isNaN(hs) || isNaN(as) || hs === as) return;
     survivors.delete(String(hs < as ? m[5] : m[6]));
