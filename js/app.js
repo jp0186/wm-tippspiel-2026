@@ -309,7 +309,10 @@ function roundTile(m) {
   })();
   const meta = hasResult ? dateLabel : `${dateLabel} · ${escHtml(String(m[2]))} Uhr`;
   const center = hasResult ? `${escHtml(String(dispH))}–${escHtml(String(dispA))}` : "vs";
-  const penLine = hasPens ? `<div class="rt-pens">${escHtml(String(penH))}:${escHtml(String(penA))} n.E.</div>` : "";
+  // duration (col 11): mark a shootout ("3:4 n.E.") or an extra-time finish ("n.V.").
+  const penLine = hasPens
+    ? `<div class="rt-pens">${escHtml(String(penH))}:${escHtml(String(penA))} n.E.</div>`
+    : (String(m[11] ?? "") === "EXTRA_TIME" ? `<div class="rt-pens">n.V.</div>` : "");
   return `<div class="round-tile${hasResult ? " done" : ""}">
     <div class="rt-meta">${escHtml(meta)}</div>
     <div class="rt-teams">
