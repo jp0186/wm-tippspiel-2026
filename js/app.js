@@ -291,19 +291,33 @@ function roundTile(m) {
   const fa = TEAM_FLAG[away.toLowerCase()] || TEAM_FLAG[norm(m[6])] || "";
   const hs = m[7], as = m[8];
   const hasResult = String(hs) !== "" && String(as) !== "";
+  // home_pen/away_pen (cols 9/10): set only when a match went to penalties. The stored
+  // home_score/away_score is the aggregate incl. the shootout, so the 90+ET score that we
+  // show is aggregate − pens (e.g. 4−3 : 5−4 → 1:1, with "3:4 n.E." underneath).
+  const penH = m[9], penA = m[10];
+  const hasPens = String(penH ?? "") !== "" && String(penA ?? "") !== "";
+  const dispH = hasPens ? Number(hs) - Number(penH) : hs;
+  const dispA = hasPens ? Number(as) - Number(penA) : as;
+  // Loser of a decided knockout match (lower aggregate score) is eliminated.
+  let homeOut = false, awayOut = false;
+  if (hasResult && Number(hs) !== Number(as)) {
+    if (Number(hs) < Number(as)) homeOut = true; else awayOut = true;
+  }
   const dateLabel = (() => {
     const d = new Date(`${String(m[1]).slice(0,10)}T00:00:00`);
     return isNaN(d) ? String(m[1]) : d.toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" });
   })();
   const meta = hasResult ? dateLabel : `${dateLabel} · ${escHtml(String(m[2]))} Uhr`;
-  const center = hasResult ? `${escHtml(String(hs))}–${escHtml(String(as))}` : "vs";
+  const center = hasResult ? `${escHtml(String(dispH))}–${escHtml(String(dispA))}` : "vs";
+  const penLine = hasPens ? `<div class="rt-pens">${escHtml(String(penH))}:${escHtml(String(penA))} n.E.</div>` : "";
   return `<div class="round-tile${hasResult ? " done" : ""}">
     <div class="rt-meta">${escHtml(meta)}</div>
     <div class="rt-teams">
-      <span class="rt-side"><span class="rt-flag">${fh}</span><span class="rt-name">${escHtml(home)}</span></span>
+      <span class="rt-side${homeOut ? " elim" : ""}"><span class="rt-flag">${fh}</span><span class="rt-name">${escHtml(home)}</span></span>
       <span class="rt-score">${center}</span>
-      <span class="rt-side rt-away"><span class="rt-name">${escHtml(away)}</span><span class="rt-flag">${fa}</span></span>
+      <span class="rt-side rt-away${awayOut ? " elim" : ""}"><span class="rt-name">${escHtml(away)}</span><span class="rt-flag">${fa}</span></span>
     </div>
+    ${penLine}
   </div>`;
 }
 

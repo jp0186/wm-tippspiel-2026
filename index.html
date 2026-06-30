@@ -332,6 +332,15 @@
       text-align: center;
     }
     .round-tile.done .rt-score { color: var(--green); }
+    .rt-pens {
+      margin-top: 0.3rem;
+      text-align: center;
+      font-size: 0.72rem;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-muted);
+    }
+    .rt-side.elim .rt-name { text-decoration: line-through; }
+    .rt-side.elim { opacity: 0.5; }
 
     .ks-box, .semi-box {
       background: var(--surface);
@@ -500,7 +509,7 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-  <script src="js/app.js?v=23"></script>
+  <script src="js/app.js?v=24"></script>
   <script>
     autoRefresh(renderLeaderboard);
   </script>
