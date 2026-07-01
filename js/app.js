@@ -267,8 +267,10 @@ function stillInTeams(matchRows) {
 
   const survivors = new Set();
   ko.forEach(m => { survivors.add(String(m[5])); survivors.add(String(m[6])); });
-  // Drop the loser of any decided knockout match (equal score = penalties → keep both).
+  // Drop the loser of any FINISHED knockout match (equal score = penalties → keep both).
+  // A team trailing in a live game keeps its place until the match is actually over.
   ko.forEach(m => {
+    if (String(m[12]) !== "FINISHED") return;
     const hs = parseInt(m[7]), as = parseInt(m[8]);
     if (isNaN(hs) || isNaN(as) || hs === as) return;
     survivors.delete(String(hs < as ? m[5] : m[6]));
@@ -298,9 +300,10 @@ function roundTile(m) {
   const hasPens = String(penH ?? "") !== "" && String(penA ?? "") !== "";
   const dispH = hasPens ? Number(hs) - Number(penH) : hs;
   const dispA = hasPens ? Number(as) - Number(penA) : as;
-  // Loser of a decided knockout match (lower aggregate score) is eliminated.
+  // Loser of a FINISHED knockout match (lower aggregate score) is eliminated. A side
+  // trailing in a live game is not struck through until the match is over.
   let homeOut = false, awayOut = false;
-  if (hasResult && Number(hs) !== Number(as)) {
+  if (hasResult && String(m[12]) === "FINISHED" && Number(hs) !== Number(as)) {
     if (Number(hs) < Number(as)) homeOut = true; else awayOut = true;
   }
   const dateLabel = (() => {
