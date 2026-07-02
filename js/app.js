@@ -255,6 +255,17 @@ const ROUND_DE = {
 
 function norm(s) { return String(s ?? "").trim().toLowerCase(); }
 
+// A knockout match counts as decided (loser is out) when it has both scores and is not
+// currently being played. We test "not live" rather than status === "FINISHED": a match
+// that finished more than a fetch-window ago may have a blank status (fetchLiveScores only
+// re-writes matches within ±1 day), yet a genuinely live game is always inside that window
+// and so always carries an IN_PLAY/PAUSED status — so this stays correct for live games.
+function isDecided(m) {
+  if (String(m[7] ?? "") === "" || String(m[8] ?? "") === "") return false;
+  const st = String(m[12] ?? "");
+  return st !== "IN_PLAY" && st !== "PAUSED";
+}
+
 // Teams still in the tournament: every team that has appeared in a drawn knockout match,
 // minus the losers of any already-decided knockout match (at any round). Taking the full
 // knockout participant pool — not just the latest drawn round — keeps teams that are still
@@ -267,10 +278,10 @@ function stillInTeams(matchRows) {
 
   const survivors = new Set();
   ko.forEach(m => { survivors.add(String(m[5])); survivors.add(String(m[6])); });
-  // Drop the loser of any FINISHED knockout match (equal score = penalties → keep both).
+  // Drop the loser of any decided knockout match (equal score = penalties → keep both).
   // A team trailing in a live game keeps its place until the match is actually over.
   ko.forEach(m => {
-    if (String(m[12]) !== "FINISHED") return;
+    if (!isDecided(m)) return;
     const hs = parseInt(m[7]), as = parseInt(m[8]);
     if (isNaN(hs) || isNaN(as) || hs === as) return;
     survivors.delete(String(hs < as ? m[5] : m[6]));
@@ -300,10 +311,10 @@ function roundTile(m) {
   const hasPens = String(penH ?? "") !== "" && String(penA ?? "") !== "";
   const dispH = hasPens ? Number(hs) - Number(penH) : hs;
   const dispA = hasPens ? Number(as) - Number(penA) : as;
-  // Loser of a FINISHED knockout match (lower aggregate score) is eliminated. A side
+  // Loser of a decided knockout match (lower aggregate score) is eliminated. A side
   // trailing in a live game is not struck through until the match is over.
   let homeOut = false, awayOut = false;
-  if (hasResult && String(m[12]) === "FINISHED" && Number(hs) !== Number(as)) {
+  if (isDecided(m) && Number(hs) !== Number(as)) {
     if (Number(hs) < Number(as)) homeOut = true; else awayOut = true;
   }
   const dateLabel = (() => {
