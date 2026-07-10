@@ -297,6 +297,35 @@ function isStillIn(team, set) {
   return set.has(norm(team)) || set.has(norm(teamDE(team)));
 }
 
+// Teams that have reached the semifinals: drawn into a Semi-finals row, or the winner of a
+// decided quarter-final (immediate, before the API draws the semi bracket). Permanent once
+// achieved — a semifinalist that later loses the semi still counts. Returns a normalized Set
+// (English + German forms), or null if none are known yet.
+function semifinalistTeams(matchRows) {
+  const sfs = new Set();
+  matchRows.forEach(m => {
+    if (String(m[4]) === "Semi-finals") {
+      if (m[5]) sfs.add(String(m[5]));
+      if (m[6]) sfs.add(String(m[6]));
+    }
+  });
+  matchRows.forEach(m => {
+    if (String(m[4]) !== "Quarter-finals" || !isDecided(m)) return;
+    const hs = parseInt(m[7]), as = parseInt(m[8]);
+    if (isNaN(hs) || isNaN(as) || hs === as) return;
+    sfs.add(String(hs > as ? m[5] : m[6]));
+  });
+  if (!sfs.size) return null;
+  const set = new Set();
+  sfs.forEach(t => { set.add(norm(t)); set.add(norm(teamDE(t))); });
+  return set;
+}
+
+function isSemifinalist(team, set) {
+  if (!set) return false;
+  return set.has(norm(team)) || set.has(norm(teamDE(team)));
+}
+
 // Compact tile string for one match.
 function roundTile(m) {
   const home = teamDE(String(m[5])), away = teamDE(String(m[6]));
@@ -390,8 +419,9 @@ function renderKnockoutScorers(scorersRows, set) {
   </div>`;
 }
 
-// Semifinal-tips grid; picks whose team is out are greyed (cf. halbTable in renderSpecial).
-function renderSemiTips(spTipsRows, spPtsRows, set) {
+// Semifinal-tips grid; a correct pick (team reached the semis) is green ✓, a pick whose
+// team is out without reaching the semis is greyed (cf. halbTable in renderSpecial).
+function renderSemiTips(spTipsRows, spPtsRows, set, sfSet) {
   if (!spTipsRows.length) return "";
   const sfPtsByPlayer = {};
   spPtsRows.forEach(r => { if (r[0]) sfPtsByPlayer[String(r[0])] = r[3]; }); // Special_Points col 3 = SF pts
@@ -401,8 +431,10 @@ function renderSemiTips(spTipsRows, spPtsRows, set) {
     const picks = [r[3], r[4], r[5], r[6]].map(v => String(v ?? ""));
     const cells = picks.map(p => {
       if (!p) return `<span class="semi-cell empty">–</span>`;
-      const dead = !isStillIn(p, set);
-      return `<span class="semi-cell${dead ? " dead" : ""}">${escHtml(teamDE(p))}</span>`;
+      const correct = isSemifinalist(p, sfSet);
+      const dead = !correct && !isStillIn(p, set);
+      const cls = correct ? " correct" : dead ? " dead" : "";
+      return `<span class="semi-cell${cls}">${escHtml(teamDE(p))}${correct ? " ✓" : ""}</span>`;
     }).join("");
     const sf = parseInt(sfPtsByPlayer[String(r[0])], 10);
     const pts = isNaN(sf) ? 0 : sf;
@@ -412,16 +444,17 @@ function renderSemiTips(spTipsRows, spPtsRows, set) {
     </div>`;
   }).join("");
   return `<div class="semi-box">
-    <h3>Halbfinal-Tipps <small>(ausgeschiedene ausgegraut)</small></h3>
+    <h3>Halbfinal-Tipps <small>(korrekt ✓ · ausgeschieden ausgegraut)</small></h3>
     <div class="semi-list">${rows}</div>
   </div>`;
 }
 
 function renderKnockoutDashboard(matchRows, scorersRows, spTipsRows, spPtsRows) {
   const set = stillInTeams(matchRows);
+  const sfSet = semifinalistTeams(matchRows);
   return renderRoundTiles(matchRows)
        + renderKnockoutScorers(scorersRows, set)
-       + renderSemiTips(spTipsRows, spPtsRows, set);
+       + renderSemiTips(spTipsRows, spPtsRows, set, sfSet);
 }
 
 // ── Upcoming matches / countdown ───────────────────────────────────────────────
@@ -1089,13 +1122,15 @@ async function renderSpecial() {
       }
     );
 
+    // A pick is correct once its team has reached the semifinals (5 pts each).
+    const sfSet = semifinalistTeams(matchData.rows);
     const halbTable = buildTable(
       [["Halbfinalist 1", "5P"], ["Halbfinalist 2", "5P"], ["Halbfinalist 3", "5P"], ["Halbfinalist 4", "5P"]],
       p => {
         const sfN = parseInt(p.sf_pts, 10);
         return `<tr>
           <td class="sp-player">${escHtml(p.name)}</td>
-          ${p.sf_tips.map(t => cell(t, "")).join("")}
+          ${p.sf_tips.map(t => cell(t, isSemifinalist(t, sfSet) ? 5 : "")).join("")}
           ${ptsCell(isNaN(sfN) ? 0 : sfN)}
         </tr>`;
       }

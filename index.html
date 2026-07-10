@@ -378,6 +378,7 @@
     }
     .semi-cell.dead { color: var(--text-muted); text-decoration: line-through; opacity: 0.55; }
     .semi-cell.empty { color: var(--text-muted); background: transparent; }
+    .semi-cell.correct { color: var(--green); font-weight: 700; background: rgba(47, 109, 70, 0.18); }
 
     /* ── Phase 2: special-points emphasis ───────────── */
     .phase-banner {
@@ -509,7 +510,7 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-  <script src="js/app.js?v=27"></script>
+  <script src="js/app.js?v=28"></script>
   <script>
     autoRefresh(renderLeaderboard);
   </script>
