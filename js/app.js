@@ -326,6 +326,26 @@ function isSemifinalist(team, set) {
   return set.has(norm(team)) || set.has(norm(teamDE(team)));
 }
 
+// Membership test against a normalized team set (English or German form). False on null.
+function teamInSet(team, set) {
+  if (!set) return false;
+  return set.has(norm(team)) || set.has(norm(teamDE(team)));
+}
+
+// Teams with a knockout match still to be played (incl. the third-place match). Their
+// players can still add goals, so a third-place team — knocked out of the title but still
+// playing one more match — stays eligible for the Torschützenkönig list.
+function stillPlayingTeams(matchRows) {
+  const set = new Set();
+  matchRows.forEach(m => {
+    const stage = String(m[4]);
+    if (!KNOCKOUT_ORDER.includes(stage) && stage !== "Third Place") return;
+    if (!m[5] || !m[6] || isDecided(m)) return;
+    [m[5], m[6]].forEach(t => { set.add(norm(String(t))); set.add(norm(teamDE(String(t)))); });
+  });
+  return set;
+}
+
 // Compact tile string for one match.
 function roundTile(m) {
   const home = teamDE(String(m[5])), away = teamDE(String(m[6]));
@@ -367,6 +387,19 @@ function roundTile(m) {
   </div>`;
 }
 
+// One heading + tile grid for a single stage; "" when that stage has no drawn match.
+function roundSection(matchRows, stage) {
+  const tiles = matchRows
+    .filter(m => String(m[4]) === stage && m[5] && m[6])
+    .sort((a, b) => new Date(`${String(a[1]).slice(0,10)}T${a[2] || "00:00"}`) - new Date(`${String(b[1]).slice(0,10)}T${b[2] || "00:00"}`))
+    .map(m => roundTile(m)).join("");
+  if (!tiles) return "";
+  return `<div class="round-section">
+    <h3>${escHtml(ROUND_DE[stage] || stage)}</h3>
+    <div class="round-tiles">${tiles}</div>
+  </div>`;
+}
+
 function renderRoundTiles(matchRows) {
   // Current round = earliest drawn round with an unplayed match; else the latest drawn round.
   let current = null, lastDrawn = null;
@@ -380,30 +413,23 @@ function renderRoundTiles(matchRows) {
   const stage = current || lastDrawn;
   if (!stage) return "";
 
-  const stages = stage === "Final" ? ["Final", "Third Place"] : [stage];
-  let tiles = "";
-  stages.forEach(st => {
-    matchRows
-      .map((m, i) => ({ m, i }))
-      .filter(({ m }) => String(m[4]) === st && m[5] && m[6])
-      .sort((a, b) => new Date(`${String(a.m[1]).slice(0,10)}T${a.m[2] || "00:00"}`) - new Date(`${String(b.m[1]).slice(0,10)}T${b.m[2] || "00:00"}`))
-      .forEach(({ m }) => { tiles += roundTile(m); });
-  });
-  if (!tiles) return "";
-  return `<div class="round-section">
-    <h3>${escHtml(ROUND_DE[stage] || stage)}</h3>
-    <div class="round-tiles">${tiles}</div>
-  </div>`;
+  // Final stage: show "Spiel um Platz 3" and "Finale" as separate, titled sections.
+  if (stage === "Final") {
+    return roundSection(matchRows, "Third Place") + roundSection(matchRows, "Final");
+  }
+  return roundSection(matchRows, stage);
 }
 
 // Ranked top-scorer list. Normally limited to players still in the tournament, but the
 // current leader(s) stay even if their team is out — they remain the leading scorer (and
-// hold the Torschützenkönig bet) until someone with more goals surpasses them.
-function renderKnockoutScorers(scorersRows, set) {
+// hold the Torschützenkönig bet) until someone with more goals surpasses them. Players whose
+// team still has a match to play (the two third-place contestants) also stay: they can still
+// add goals and reach first place.
+function renderKnockoutScorers(scorersRows, set, playingSet) {
   const valid = scorersRows.filter(r => r[0] && parseInt(r[2]) > 0);
   const globalMax = valid.reduce((m, r) => Math.max(m, parseInt(r[2])), 0);
   const items = valid
-    .filter(r => isStillIn(r[1], set) || parseInt(r[2]) === globalMax)
+    .filter(r => isStillIn(r[1], set) || teamInSet(r[1], playingSet) || parseInt(r[2]) === globalMax)
     .slice(0, 10);
   if (!items.length) return "";
   let rank = 1, prev = null, count = 0;
@@ -452,8 +478,9 @@ function renderSemiTips(spTipsRows, spPtsRows, set, sfSet) {
 function renderKnockoutDashboard(matchRows, scorersRows, spTipsRows, spPtsRows) {
   const set = stillInTeams(matchRows);
   const sfSet = semifinalistTeams(matchRows);
+  const playingSet = stillPlayingTeams(matchRows);
   return renderRoundTiles(matchRows)
-       + renderKnockoutScorers(scorersRows, set)
+       + renderKnockoutScorers(scorersRows, set, playingSet)
        + renderSemiTips(spTipsRows, spPtsRows, set, sfSet);
 }
 
