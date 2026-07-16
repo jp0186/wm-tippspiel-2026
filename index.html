@@ -380,6 +380,71 @@
     .semi-cell.empty { color: var(--text-muted); background: transparent; }
     .semi-cell.correct { color: var(--green); font-weight: 700; background: rgba(47, 109, 70, 0.18); }
 
+    /* ── Final results banner ───────────────────────── */
+    .fb-wrap { margin-bottom: 2rem; }
+
+    .fb-champ {
+      position: relative; text-align: center; overflow: hidden;
+      padding: 2.2rem 1.5rem 1.9rem; border-radius: 16px;
+      background:
+        radial-gradient(120% 140% at 50% 0%, rgba(245,197,24,0.18) 0%, rgba(245,197,24,0.03) 45%, transparent 70%),
+        var(--surface);
+      border: 1px solid rgba(245,197,24,0.35);
+      box-shadow: 0 0 60px rgba(245,197,24,0.10);
+      animation: fbRise 0.6s ease both;
+    }
+    .fb-trophy { font-size: 2.6rem; line-height: 1; filter: drop-shadow(0 4px 14px rgba(245,197,24,0.5)); animation: fbFloat 3.5s ease-in-out infinite; }
+    .fb-eyebrow { margin-top: 0.7rem; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); }
+    .fb-champ-name { margin-top: 0.3rem; font-size: clamp(2rem, 6vw, 2.9rem); font-weight: 800; letter-spacing: -0.01em; text-wrap: balance; }
+    .fb-champ-points { margin-top: 0.4rem; font-size: 1.35rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--gold); }
+    .fb-champ-final { margin-top: 0.5rem; font-size: 0.88rem; color: var(--text-muted); }
+
+    .fb-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+    @media (max-width: 560px) { .fb-cards { grid-template-columns: 1fr; } }
+    .fb-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.25rem; animation: fbRise 0.6s ease both; }
+    .fb-card-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 0.45rem; }
+    .fb-card-main { margin-top: 0.7rem; }
+    .fb-card-name { font-size: 1.35rem; font-weight: 700; }
+    .fb-flag { font-size: 1.1em; }
+    .fb-card-second { margin-top: 0.45rem; }
+    .fb-sub { font-size: 0.86rem; color: var(--text-muted); }
+    .fb-tie { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; color: var(--gold); border: 1px solid rgba(245,197,24,0.4); border-radius: 20px; padding: 0.05em 0.5em; }
+    .fb-ts-list { margin-top: 0.7rem; display: flex; flex-direction: column; gap: 0.5rem; }
+    .fb-ts-entry { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; padding: 0.5rem 0.65rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; }
+    .fb-ts-name { font-size: 1.1rem; font-weight: 700; }
+    .fb-badge { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 800; font-size: 1.02rem; color: var(--gold); white-space: nowrap; }
+
+    .fb-podium-box { margin-top: 1.75rem; }
+    .fb-section-h { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 0.9rem; }
+    .fb-podium { display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 0.7rem; align-items: end; }
+    .fb-step { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 0.75rem; text-align: center; }
+    .fb-medal { font-size: 1.5rem; line-height: 1; }
+    .fb-who { margin-top: 0.4rem; font-weight: 700; font-size: 1.02rem; }
+    .fb-score { margin-top: 0.1rem; font-variant-numeric: tabular-nums; color: var(--text-muted); font-size: 0.85rem; }
+    .fb-score b { color: var(--accent); font-size: 1.15rem; }
+    .fb-step.p1 { border-color: rgba(245,197,24,0.5); background: linear-gradient(180deg, rgba(245,197,24,0.10), var(--surface)); padding-top: 1.5rem; }
+    .fb-step.p1 .fb-medal { font-size: 1.9rem; }
+    .fb-step.p2 { border-color: rgba(192,199,212,0.35); }
+    .fb-step.p3 { border-color: rgba(205,127,50,0.35); }
+    .fb-rankno { position: absolute; top: 0.5rem; left: 0.6rem; font-size: 0.72rem; color: var(--text-muted); font-weight: 700; }
+
+    .fb-tipped { margin-top: 1.6rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.5rem 1.25rem; }
+    .fb-tipped-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; padding: 0.6rem 0; }
+    .fb-tipped-row + .fb-tipped-row { border-top: 1px solid var(--border); }
+    .fb-tipped-key { font-size: 0.85rem; color: var(--text-muted); min-width: 13rem; }
+    .fb-tipped-key b { color: var(--text); }
+    .fb-chip { font-size: 0.8rem; font-weight: 600; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 0.2em 0.7em; }
+    .fb-chip .fb-plus { color: var(--green); font-weight: 700; margin-left: 0.25em; }
+    .fb-chip.none { color: var(--text-muted); font-style: italic; border-style: dashed; }
+
+    .fb-farewell { margin-top: 2rem; border: 1px dashed rgba(245,197,24,0.45); border-radius: var(--radius); padding: 1.25rem 1.4rem; background: rgba(245,197,24,0.04); font-size: 0.98rem; line-height: 1.65; color: var(--text); text-wrap: pretty; }
+    .fb-fw-icon { font-size: 1.15rem; margin-right: 0.35rem; }
+    .fb-farewell b { color: var(--gold); font-weight: 700; }
+
+    @keyframes fbRise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+    @keyframes fbFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    @media (prefers-reduced-motion: reduce) { .fb-champ, .fb-card, .fb-trophy { animation: none; } }
+
     /* ── Phase 2: special-points emphasis ───────────── */
     .phase-banner {
       background: linear-gradient(90deg, rgba(245,197,24,0.18), rgba(245,197,24,0.06));
@@ -510,7 +575,7 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-  <script src="js/app.js?v=29"></script>
+  <script src="js/app.js?v=30"></script>
   <script>
     autoRefresh(renderLeaderboard);
   </script>

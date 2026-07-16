@@ -484,6 +484,126 @@ function renderKnockoutDashboard(matchRows, scorersRows, spTipsRows, spPtsRows) 
        + renderSemiTips(spTipsRows, spPtsRows, set, sfSet);
 }
 
+// ── Final results banner (shown once the Final is decided) ─────────────────────
+
+function finalMatchRow(matchRows) {
+  return matchRows.find(m => String(m[4]) === "Final" && m[5] && m[6]) || null;
+}
+
+// Champion = winner of the decided Final (English team name), or null while unplayed/live.
+function tournamentWinnerTeam(matchRows) {
+  const m = finalMatchRow(matchRows);
+  if (!m || !isDecided(m)) return null;
+  const hs = parseInt(m[7]), as = parseInt(m[8]);
+  if (isNaN(hs) || isNaN(as) || hs === as) return null;
+  return String(hs > as ? m[5] : m[6]);
+}
+
+// All scorers tied at the top of the Top_Scorers tab (>0 goals) → [{name, team, goals}].
+function topScorersTied(scorersRows) {
+  const valid = scorersRows.filter(r => r[0] && parseInt(r[2]) > 0);
+  if (!valid.length) return [];
+  const max = valid.reduce((mx, r) => Math.max(mx, parseInt(r[2])), 0);
+  return valid.filter(r => parseInt(r[2]) === max).map(r => ({ name: String(r[0]), team: String(r[1]), goals: max }));
+}
+
+function flagFor(team) {
+  return TEAM_FLAG[teamDE(String(team)).toLowerCase()] || TEAM_FLAG[norm(team)] || "";
+}
+
+// "Spanien 2 – 1 Argentinien" (+ " (3:4 n.E.)" / " (n.V.)"); scores exclude the shootout.
+function finalScoreLine(m) {
+  const home = teamDE(String(m[5])), away = teamDE(String(m[6]));
+  const penH = m[9], penA = m[10];
+  const hasPens = String(penH ?? "") !== "" && String(penA ?? "") !== "";
+  const dispH = hasPens ? Number(m[7]) - Number(penH) : m[7];
+  const dispA = hasPens ? Number(m[8]) - Number(penA) : m[8];
+  const suffix = hasPens ? ` (${escHtml(String(penH))}:${escHtml(String(penA))} n.E.)`
+    : (String(m[11] ?? "") === "EXTRA_TIME" ? " (n.V.)" : "");
+  return `${escHtml(home)} ${escHtml(String(dispH))} – ${escHtml(String(dispA))} ${escHtml(away)}${suffix}`;
+}
+
+// The end-of-tournament banner: Tippspiel-winner hero, Weltmeister + Torschützenkönig
+// cards, podium, correct-tip chips, and the organizer sign-off. "" until the Final is done.
+function renderFinalBanner(matchRows, lbRows, scorersRows, spPtsRows) {
+  const fm = finalMatchRow(matchRows);
+  const winnerTeam = tournamentWinnerTeam(matchRows);
+  if (!winnerTeam || !lbRows.length) return "";
+
+  const champName = String(lbRows[0][1]), champPts = String(lbRows[0][2]);
+
+  // Hero — Tippspiel winner (leaderboard rank 1) + what they scored in the final.
+  const champSp = spPtsRows.find(r => String(r[0]) === champName);
+  const gotWm = champSp && parseInt(champSp[1]) > 0;
+  const gotTs = champSp && parseInt(champSp[2]) > 0;
+  const parts = [];
+  if (gotWm) parts.push("Weltmeister (15)");
+  if (gotTs) parts.push("Torschützenkönig (10)");
+  const heroFinal = parts.length
+    ? `<div class="fb-champ-final">+${(gotWm ? 15 : 0) + (gotTs ? 10 : 0)} im Finale: ${parts.join(" & ")} richtig getippt</div>` : "";
+  const hero = `<section class="fb-champ">
+    <div class="fb-trophy">🏆</div>
+    <div class="fb-eyebrow">Tippspiel-Sieger 2026</div>
+    <h2 class="fb-champ-name">${escHtml(champName)}</h2>
+    <div class="fb-champ-points">${escHtml(champPts)} Punkte</div>
+    ${heroFinal}
+  </section>`;
+
+  // Weltmeister card
+  const wmFlag = flagFor(winnerTeam);
+  const wmCard = `<div class="fb-card">
+    <div class="fb-card-label">⚽ Weltmeister</div>
+    <div class="fb-card-main"><span class="fb-card-name">${wmFlag ? `<span class="fb-flag">${wmFlag}</span> ` : ""}${escHtml(teamDE(winnerTeam))}</span></div>
+    <div class="fb-card-second"><span class="fb-sub">Finale: ${finalScoreLine(fm)}</span></div>
+  </div>`;
+
+  // Torschützenkönig card — tied scorers shown as equal entries
+  const tops = topScorersTied(scorersRows);
+  const tie = tops.length > 1 ? ` <span class="fb-tie">geteilt</span>` : "";
+  const tsEntries = tops.map(s => `<div class="fb-ts-entry">
+    <span class="fb-ts-name">${escHtml(s.name)}</span>
+    <span class="fb-sub">${flagFor(s.team)} ${escHtml(teamDE(s.team))}</span>
+    <span class="fb-badge">${s.goals} Tore</span>
+  </div>`).join("");
+  const tsCard = `<div class="fb-card">
+    <div class="fb-card-label">👟 Torschützenkönig${tie}</div>
+    <div class="fb-ts-list">${tsEntries}</div>
+  </div>`;
+
+  // Podium — visual order 2 · 1 · 3
+  const medals = ["🥇", "🥈", "🥉"], pcls = ["p1", "p2", "p3"];
+  const podium = [1, 0, 2].map(i => {
+    const r = lbRows[i];
+    if (!r) return "";
+    return `<div class="fb-step ${pcls[i]}">
+      <span class="fb-rankno">${i + 1}.</span>
+      <div class="fb-medal">${medals[i]}</div>
+      <div class="fb-who">${escHtml(String(r[1]))}</div>
+      <div class="fb-score"><b>${escHtml(String(r[2]))}</b> Pkt</div>
+    </div>`;
+  }).join("");
+
+  // Correct-tip chips from Special_Points (col 1 = Weltmeister pts, col 2 = Torschützenkönig pts)
+  const chipRow = (label, pts, names) => {
+    const chips = names.length
+      ? names.map(n => `<span class="fb-chip">${escHtml(n)}<span class="fb-plus">+${pts}</span></span>`).join("")
+      : `<span class="fb-chip none">niemand</span>`;
+    return `<div class="fb-tipped-row"><span class="fb-tipped-key"><b>${label}</b> richtig (+${pts})</span>${chips}</div>`;
+  };
+  const wmNames = spPtsRows.filter(r => r[0] && parseInt(r[1]) > 0).map(r => String(r[0]));
+  const tsNames = spPtsRows.filter(r => r[0] && parseInt(r[2]) > 0).map(r => String(r[0]));
+
+  const farewell = `<div class="fb-farewell"><span class="fb-fw-icon">🏆</span>Herzlichen Glückwunsch dem Gewinner <b>${escHtml(champName)}</b> mit unglaublichen <b>${escHtml(champPts)} Punkten</b>. Der Pokal macht sich bald auf den Weg. Vielen Dank allen fürs Mitspielen – wir sehen uns in 2 Jahren wieder, dann im Mutterland des Fußballs mit durchweg humanen Anstoßzeiten.</div>`;
+
+  return `<div class="fb-wrap">
+    ${hero}
+    <div class="fb-cards">${wmCard}${tsCard}</div>
+    <div class="fb-podium-box"><div class="fb-section-h">Endstand — Podium</div><div class="fb-podium">${podium}</div></div>
+    <div class="fb-tipped">${chipRow("Weltmeister", 15, wmNames)}${chipRow("Torschützenkönig", 10, tsNames)}</div>
+    ${farewell}
+  </div>`;
+}
+
 // ── Upcoming matches / countdown ───────────────────────────────────────────────
 
 function todayStr() {
@@ -684,13 +804,15 @@ async function renderLeaderboard() {
     spTipsData.rows.forEach(r => { if (r[0]) weltmeisterMap[String(r[0])] = String(r[1] || ""); });
 
     // Phase 2 (knockout): show the knockout dashboard above the banner and let the
-    // round tiles supersede the group-phase "Nächste Spiele" block.
+    // round tiles supersede the group-phase "Nächste Spiele" block. Once the Final is
+    // decided, the end-of-tournament banner replaces the knockout dashboard entirely.
     const groupComplete = isGroupPhaseComplete(matchRows);
+    const tournamentComplete = !!tournamentWinnerTeam(matchRows);
     const phase2Container = document.getElementById("phase2-container");
     if (phase2Container) {
-      phase2Container.innerHTML = groupComplete
-        ? renderKnockoutDashboard(matchRows, scorersData.rows, spTipsData.rows, spPtsData.rows)
-        : "";
+      phase2Container.innerHTML = tournamentComplete
+        ? renderFinalBanner(matchRows, lbRows, scorersData.rows, spPtsData.rows)
+        : (groupComplete ? renderKnockoutDashboard(matchRows, scorersData.rows, spTipsData.rows, spPtsData.rows) : "");
     }
 
     if (upcomingContainer && matchRows.length && !groupComplete) {
@@ -710,9 +832,10 @@ async function renderLeaderboard() {
       return;
     }
 
-    // Phase 2: group stage done → special points are awarded, so emphasize them.
+    // Phase 2: group stage done → special points are awarded, so emphasize them. The
+    // group-phase banner is dropped once the final results banner is showing.
     const emphCls = groupComplete ? " sp-emphasis" : "";
-    const banner = groupComplete
+    const banner = (groupComplete && !tournamentComplete)
       ? `<div class="phase-banner">⭐ Gruppenphase abgeschlossen — die ersten Spezialtipps wurden vergeben! <a href="special.html">Spezialtipps ansehen</a></div>`
       : "";
 
